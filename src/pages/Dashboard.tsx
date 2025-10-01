@@ -12,7 +12,9 @@ import {
   DollarSign,
   LogOut,
   BarChart3,
-  Upload
+  Upload,
+  Search,
+  AlertTriangle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -59,6 +61,14 @@ export default function Dashboard() {
       show: isAdmin,
     },
     {
+      title: 'Consultar Produtos',
+      description: 'Ver estoque disponível',
+      icon: Search,
+      path: '/consulta-produtos',
+      color: 'from-cyan-500 to-cyan-600',
+      show: true,
+    },
+    {
       title: 'Histórico de Vendas',
       description: 'Ver todas as vendas',
       icon: FileText,
@@ -81,6 +91,14 @@ export default function Dashboard() {
       path: '/desperdicio',
       color: 'from-destructive to-red-600',
       show: true,
+    },
+    {
+      title: 'Produtos em Risco',
+      description: 'Estoque crítico e sem vendas',
+      icon: AlertTriangle,
+      path: '/produtos-risco',
+      color: 'from-red-500 to-red-600',
+      show: isAdmin,
     },
     {
       title: 'Venda Total',

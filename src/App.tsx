@@ -16,6 +16,8 @@ import Desperdicio from "./pages/Desperdicio";
 import VendaTotal from "./pages/VendaTotal";
 import Usuarios from "./pages/Usuarios";
 import ImportarProdutos from "./pages/ImportarProdutos";
+import ConsultaProdutos from "./pages/ConsultaProdutos";
+import ProdutosRisco from "./pages/ProdutosRisco";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -120,6 +122,22 @@ const App = () => (
               element={
                 <ProtectedRoute adminOnly>
                   <ImportarProdutos />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/consulta-produtos"
+              element={
+                <ProtectedRoute>
+                  <ConsultaProdutos />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/produtos-risco"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ProdutosRisco />
                 </ProtectedRoute>
               }
             />
