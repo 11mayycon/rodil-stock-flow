@@ -75,11 +75,12 @@ function generateSaleReceipt(data: ReceiptData): string {
   const lines: string[] = [];
   
   lines.push('========================================');
-  lines.push('           SUA EMPRESA LTDA');
-  lines.push('      Rua Exemplo, 123 - Centro');
-  lines.push('           CEP: 00000-000');
-  lines.push('        CNPJ: 00.000.000/0001-00');
-  lines.push('              IE: 000.000.000');
+  lines.push(' CENTRO AUTOMOTIVO CAMINHO CERTO LTDA');
+  lines.push('      AV MANUEL DOMINGOS PINTO');
+  lines.push('   PQ ANHANGUERA S10 PAULO-SP');
+  lines.push('          CEP: 05120-000');
+  lines.push('      CNPJ: 02.727.407/0001-40');
+  lines.push('         IE: 115.263.059.110');
   lines.push('========================================');
   lines.push('');
   lines.push(`Doc: ${data.receiptNumber} FDV ${data.saleId || 'N/A'}`);
@@ -123,11 +124,12 @@ function generateShiftClosureReport(data: ReceiptData): string {
   const lines: string[] = [];
   
   lines.push('========================================');
-  lines.push('           SUA EMPRESA LTDA');
-  lines.push('      Rua Exemplo, 123 - Centro');
-  lines.push('           CEP: 00000-000');
-  lines.push('        CNPJ: 00.000.000/0001-00');
-  lines.push('              IE: 000.000.000');
+  lines.push(' CENTRO AUTOMOTIVO CAMINHO CERTO LTDA');
+  lines.push('      AV MANUEL DOMINGOS PINTO');
+  lines.push('   PK ANHANGUERA S10 PAULO-SP');
+  lines.push('          CEP: 05120-000');
+  lines.push('      CNPJ: 02.727.407/0001-40');
+  lines.push('         IE: 115.263.059.110');
   lines.push('========================================');
   lines.push('');
   lines.push(`Doc: ${data.receiptNumber}`);

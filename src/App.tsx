@@ -142,10 +142,10 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
+          <Route
               path="/finalizar-turno"
               element={
-                <ProtectedRoute adminOnly>
+                <ProtectedRoute>
                   <FinalizarTurno />
                 </ProtectedRoute>
               }

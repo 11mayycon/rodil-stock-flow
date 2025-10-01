@@ -14,7 +14,8 @@ import {
   BarChart3,
   Upload,
   Search,
-  AlertTriangle
+  AlertTriangle,
+  Clock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,6 +35,14 @@ export default function Dashboard() {
       icon: ShoppingCart,
       path: '/pdv',
       color: 'from-primary to-primary-hover',
+      show: true,
+    },
+    {
+      title: 'Finalizar Turno',
+      description: 'Fechar caixa e gerar relatório',
+      icon: Clock,
+      path: '/finalizar-turno',
+      color: 'from-yellow-500 to-yellow-600',
       show: true,
     },
     {

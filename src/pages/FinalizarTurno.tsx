@@ -33,10 +33,11 @@ export default function FinalizarTurno() {
       const startTime = today.toISOString();
       const endTime = new Date().toISOString();
 
-      // Buscar todas as vendas do dia
+      // Buscar apenas as vendas do usuário logado no dia
       const { data: sales, error } = await supabase
         .from('sales')
         .select('*, sale_items(*)')
+        .eq('user_id', user?.id)
         .gte('created_at', startTime)
         .lte('created_at', endTime);
 
@@ -45,7 +46,7 @@ export default function FinalizarTurno() {
       if (!sales || sales.length === 0) {
         toast({
           title: 'Sem vendas',
-          description: 'Não há vendas registradas hoje.',
+          description: 'Você não possui vendas registradas no turno de hoje.',
         });
         setLoading(false);
         return;
@@ -198,12 +199,12 @@ export default function FinalizarTurno() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="w-5 h-5" />
-              Fechamento de Caixa
+              Fechamento de Caixa - {user?.name}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-6">
-              Clique no botão abaixo para calcular o resumo de vendas do dia e finalizar o turno.
+              Clique no botão abaixo para calcular o resumo das suas vendas do dia e finalizar seu turno.
             </p>
             <Button
               onClick={calculateShiftSummary}
