@@ -61,12 +61,6 @@ export default function Login() {
     }
   };
 
-  const fillAdminCredentials = () => {
-    setAdminData({
-      email: 'caminhocerto93@gmail.com',
-      password: '1285041'
-    });
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
@@ -173,14 +167,6 @@ export default function Login() {
                 {loading ? 'Entrando...' : 'Entrar'}
               </Button>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={fillAdminCredentials}
-              >
-                Preencher Credenciais (Demo)
-              </Button>
             </form>
           </TabsContent>
         </Tabs>
