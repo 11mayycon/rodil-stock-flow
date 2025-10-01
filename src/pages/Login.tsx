@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Store, Lock, Mail, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import bgImage from '@/assets/posto-rodoil-bg.jpg';
 
 export default function Login() {
   const [employeeData, setEmployeeData] = useState({ cpf: '', password: '' });
@@ -63,8 +64,17 @@ export default function Login() {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
-      <Card className="w-full max-w-md p-8 space-y-6">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <Card className="w-full max-w-md p-8 space-y-6 relative z-10 shadow-2xl">
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center">
