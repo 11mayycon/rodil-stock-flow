@@ -35,7 +35,7 @@ export default function Dashboard() {
       icon: ShoppingCart,
       path: '/pdv',
       color: 'from-primary to-primary-hover',
-      show: true,
+      show: !isAdmin,
     },
     {
       title: 'Finalizar Turno',
@@ -43,7 +43,7 @@ export default function Dashboard() {
       icon: Clock,
       path: '/finalizar-turno',
       color: 'from-yellow-500 to-yellow-600',
-      show: true,
+      show: !isAdmin,
     },
     {
       title: 'Produtos',
@@ -67,7 +67,7 @@ export default function Dashboard() {
       icon: TrendingUp,
       path: '/recebimento',
       color: 'from-success to-green-600',
-      show: isAdmin,
+      show: true,
     },
     {
       title: 'Consultar Produtos',
