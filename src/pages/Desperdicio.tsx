@@ -179,32 +179,42 @@ export default function Desperdicio() {
   };
 
   const confirmWaste = async (wasteId: string, imagePaths?: string[]) => {
-    if (!confirm('Confirmar exclusão permanente deste desperdício e suas imagens?')) return;
+    if (!confirm('Confirmar este desperdício? O registro será removido.')) return;
 
     try {
-      // Apagar imagens do storage
+      // 1) Marcar como confirmado (compatível com RLS de UPDATE)
+      const { error: updateError } = await supabase
+        .from('waste_records')
+        .update({
+          confirmed: true,
+          confirmed_by: user?.id ?? null,
+          confirmed_at: new Date().toISOString(),
+        } as any)
+        .eq('id', wasteId);
+
+      if (updateError) throw updateError;
+
+      // 2) Tentar apagar imagens do storage (não bloqueia a exclusão caso falhe)
       if (imagePaths && imagePaths.length > 0) {
-        const { error: deleteError } = await supabase.storage
+        await supabase.storage
           .from('desperdicios')
           .remove(imagePaths);
-
-        if (deleteError) throw deleteError;
       }
 
-      // Apagar registro
-      const { error } = await supabase
+      // 3) Apagar registro (policy permite DELETE se confirmed = true)
+      const { error: deleteError } = await supabase
         .from('waste_records')
         .delete()
         .eq('id', wasteId);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
 
       toast({ title: 'Desperdício confirmado e apagado' });
       loadWasteRecords();
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'Erro',
+        title: 'Erro ao confirmar',
         description: error.message,
       });
     }
