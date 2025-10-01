@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Plus, Edit, Trash2, Package, Camera } from 'lucide-react';
-import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { Html5Qrcode } from 'html5-qrcode';
 
 interface Product {
   id: string;
@@ -25,6 +25,7 @@ export default function Produtos() {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [showDialog, setShowDialog] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
     codigo_barras: '',
@@ -36,6 +37,7 @@ export default function Produtos() {
   });
   const { isAdmin } = useAuth();
   const { toast } = useToast();
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -143,48 +145,64 @@ export default function Produtos() {
 
   const scanBarcode = async () => {
     try {
-      // Verificar permissões
-      const { camera } = await BarcodeScanner.requestPermissions();
+      setShowScanner(true);
       
-      if (camera !== 'granted') {
-        toast({
-          variant: 'destructive',
-          title: 'Permissão negada',
-          description: 'É necessário permitir o acesso à câmera para escanear códigos de barras',
-        });
-        return;
-      }
+      // Criar instância do scanner
+      const scanner = new Html5Qrcode("qr-reader");
+      scannerRef.current = scanner;
 
-      // Ocultar WebView para mostrar a câmera
-      document.querySelector('body')?.classList.add('barcode-scanner-active');
-
-      // Iniciar scanner e aguardar resultado
-      const result = await BarcodeScanner.scan();
-
-      // Restaurar WebView
-      document.querySelector('body')?.classList.remove('barcode-scanner-active');
-
-      if (result.barcodes && result.barcodes.length > 0) {
-        const barcode = result.barcodes[0].rawValue;
-        setFormData({ ...formData, codigo_barras: barcode });
-        toast({
-          title: 'Código escaneado!',
-          description: barcode,
-        });
-      }
+      // Configurar e iniciar o scanner
+      await scanner.start(
+        { facingMode: "environment" }, // Câmera traseira
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
+        (decodedText) => {
+          // Código escaneado com sucesso
+          setFormData({ ...formData, codigo_barras: decodedText });
+          toast({
+            title: 'Código escaneado!',
+            description: decodedText,
+          });
+          stopScanner();
+        },
+        (errorMessage) => {
+          // Erros durante o scan (pode ignorar)
+          console.log('Scanning...', errorMessage);
+        }
+      );
     } catch (error: any) {
-      // Restaurar WebView em caso de erro
-      document.querySelector('body')?.classList.remove('barcode-scanner-active');
-      
-      if (error.message !== 'scan canceled') {
-        toast({
-          variant: 'destructive',
-          title: 'Erro ao escanear',
-          description: error.message,
-        });
-      }
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao iniciar scanner',
+        description: 'Verifique as permissões da câmera',
+      });
+      setShowScanner(false);
     }
   };
+
+  const stopScanner = async () => {
+    try {
+      if (scannerRef.current) {
+        await scannerRef.current.stop();
+        scannerRef.current = null;
+      }
+      setShowScanner(false);
+    } catch (error) {
+      console.error('Error stopping scanner:', error);
+      setShowScanner(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      // Cleanup ao desmontar o componente
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(console.error);
+      }
+    };
+  }, []);
 
   return (
     <Layout title="Produtos" showBack>
@@ -277,6 +295,33 @@ export default function Produtos() {
                 </Button>
               </div>
             </div>
+            
+            {/* Scanner Dialog */}
+            {showScanner && (
+              <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4">
+                <div className="w-full max-w-md space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-white text-lg font-semibold mb-2">
+                      Escaneie o Código de Barras
+                    </h3>
+                    <p className="text-white/70 text-sm">
+                      Posicione o código de barras dentro da área marcada
+                    </p>
+                  </div>
+                  
+                  <div id="qr-reader" className="rounded-lg overflow-hidden"></div>
+                  
+                  <Button 
+                    onClick={stopScanner}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-2">
               <Label>Nome</Label>
               <Input
