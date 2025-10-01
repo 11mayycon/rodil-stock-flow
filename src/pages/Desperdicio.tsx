@@ -117,7 +117,7 @@ export default function Desperdicio() {
         for (const file of imageFiles) {
           const fileName = `${Date.now()}-${file.name}`;
           const { error: uploadError } = await supabase.storage
-            .from('waste-photos')
+            .from('desperdicios')
             .upload(fileName, file);
 
           if (uploadError) throw uploadError;
@@ -185,7 +185,7 @@ export default function Desperdicio() {
       // Apagar imagens do storage
       if (imagePaths && imagePaths.length > 0) {
         const { error: deleteError } = await supabase.storage
-          .from('waste-photos')
+          .from('desperdicios')
           .remove(imagePaths);
 
         if (deleteError) throw deleteError;
@@ -215,7 +215,7 @@ export default function Desperdicio() {
       const urls = await Promise.all(
         imagePaths.map(async (path) => {
           const { data } = await supabase.storage
-            .from('waste-photos')
+            .from('desperdicios')
             .createSignedUrl(path, 3600);
           return data?.signedUrl || '';
         })
