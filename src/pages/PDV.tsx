@@ -60,6 +60,38 @@ export default function PDV() {
     }
   };
 
+  const handleBarcodeScan = async (code: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('codigo_barras', code)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        addToCart(data);
+        toast({
+          title: 'Produto adicionado!',
+          description: `${data.nome} - 1 unidade`,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Produto não encontrado',
+        description: 'Verifique o código de barras',
+      });
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && search.trim()) {
+      handleBarcodeScan(search.trim());
+    }
+  };
+
   const addToCart = (product: Product) => {
     const existing = cart.find(item => item.id === product.id);
     if (existing) {
@@ -249,9 +281,10 @@ export default function PDV() {
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Digite o nome ou código de barras..."
+              placeholder="Escaneie ou digite o código de barras (Enter para adicionar)..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               className="pl-10"
             />
           </div>
