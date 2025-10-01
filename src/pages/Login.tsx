@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Store, Lock, Mail, CreditCard } from 'lucide-react';
+import { Lock, Mail, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import bgImage from '@/assets/posto-rodoil-bg.jpg';
+import logoImage from '@/assets/rodoil-logo.png';
 
 export default function Login() {
   const [employeeData, setEmployeeData] = useState({ cpf: '', password: '' });
@@ -77,9 +78,7 @@ export default function Login() {
       <Card className="w-full max-w-md p-8 space-y-6 relative z-10 shadow-2xl">
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center">
-              <Store className="w-8 h-8 text-white" />
-            </div>
+            <img src={logoImage} alt="RodOil Logo" className="w-20 h-20" />
           </div>
           <h1 className="text-3xl font-bold">POSTO RODOIL</h1>
           <p className="text-muted-foreground">Sistema de Gerenciamento de Estoque</p>
