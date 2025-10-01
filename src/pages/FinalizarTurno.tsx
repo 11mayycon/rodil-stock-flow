@@ -115,7 +115,7 @@ export default function FinalizarTurno() {
       });
 
       setShowReport(false);
-      setSummary(null);
+      // Mantemos o resumo para permitir a impressão
       setShowPrintDialog(true);
     } catch (error) {
       console.error('Error finalizing shift:', error);
@@ -173,6 +173,8 @@ export default function FinalizarTurno() {
 
       console.log('Report text:', data.receiptText);
       setShowPrintDialog(false);
+      // Limpa o resumo após a impressão
+      setSummary(null);
     } catch (error) {
       console.error('Error printing report:', error);
       toast({
