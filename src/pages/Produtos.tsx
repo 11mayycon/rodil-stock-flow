@@ -145,15 +145,29 @@ export default function Produtos() {
 
   const scanBarcode = async () => {
     try {
+      // Primeiro mostra o scanner para renderizar o elemento DOM
       setShowScanner(true);
+      
+      // Aguarda o elemento ser renderizado
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Criar instância do scanner
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
 
+      // Tentar obter lista de câmeras disponíveis
+      const cameras = await Html5Qrcode.getCameras();
+      
+      if (!cameras || cameras.length === 0) {
+        throw new Error('Nenhuma câmera encontrada');
+      }
+
+      // Usar a última câmera (geralmente é a traseira)
+      const cameraId = cameras.length > 1 ? cameras[cameras.length - 1].id : cameras[0].id;
+
       // Configurar e iniciar o scanner
       await scanner.start(
-        { facingMode: "environment" }, // Câmera traseira
+        cameraId,
         {
           fps: 10,
           qrbox: { width: 250, height: 250 }
@@ -173,10 +187,11 @@ export default function Produtos() {
         }
       );
     } catch (error: any) {
+      console.error('Scanner error:', error);
       toast({
         variant: 'destructive',
         title: 'Erro ao iniciar scanner',
-        description: 'Verifique as permissões da câmera',
+        description: error.message || 'Permita o acesso à câmera nas configurações do navegador',
       });
       setShowScanner(false);
     }
