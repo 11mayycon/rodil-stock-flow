@@ -4,9 +4,11 @@ import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { FileText, DollarSign, Calendar } from 'lucide-react';
+import { FileText, DollarSign, Calendar, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 interface Sale {
   id: string;
@@ -28,7 +30,9 @@ export default function HistoricoVendas() {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
   const [showDialog, setShowDialog] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const { user, isAdmin } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     loadSales();
@@ -79,6 +83,64 @@ export default function HistoricoVendas() {
       outro: 'Outro',
     };
     return methods[method] || method;
+  };
+
+  const handlePrintReceipt = async () => {
+    if (!selectedSale) return;
+
+    setPrinting(true);
+    try {
+      const receiptNumber = `NF-${Date.now()}`;
+      const saleDate = new Date(selectedSale.created_at);
+      
+      const receiptData = {
+        type: 'sale',
+        saleId: selectedSale.id,
+        receiptNumber,
+        date: saleDate.toLocaleDateString('pt-BR'),
+        time: saleDate.toLocaleTimeString('pt-BR'),
+        user: selectedSale.users?.name || user?.name || 'Sistema',
+        items: saleItems.map(item => ({
+          nome: item.nome_produto,
+          quantidade: item.quantidade,
+          preco: item.preco_unitario,
+          total: item.preco_unitario * item.quantidade,
+        })),
+        total: selectedSale.total,
+        paymentMethod: selectedSale.forma_pagamento,
+      };
+
+      // Chamar edge function para gerar cupom
+      const { data, error } = await supabase.functions.invoke('print-receipt', {
+        body: receiptData,
+      });
+
+      if (error) throw error;
+
+      // Salvar log do recibo
+      await supabase.from('receipts_log').insert([{
+        sale_id: selectedSale.id,
+        user_id: user?.id,
+        receipt_number: receiptNumber,
+        receipt_data: receiptData,
+      }] as any);
+
+      toast({
+        title: 'Nota fiscal gerada!',
+        description: `Número: ${receiptNumber}`,
+      });
+
+      console.log('Receipt text:', data.receiptText);
+    } catch (error) {
+      console.error('Error printing receipt:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao gerar nota fiscal',
+        description: 'Tente novamente mais tarde',
+      });
+    } finally {
+      setPrinting(false);
+    }
   };
 
   return (
@@ -166,11 +228,20 @@ export default function HistoricoVendas() {
                 ))}
               </div>
 
-              <div className="border-t pt-4">
+              <div className="border-t pt-4 space-y-4">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total:</span>
                   <span className="text-primary">R$ {selectedSale.total.toFixed(2)}</span>
                 </div>
+                
+                <Button 
+                  onClick={handlePrintReceipt} 
+                  disabled={printing}
+                  className="w-full bg-gradient-to-r from-primary to-primary-hover"
+                >
+                  <Printer className="w-4 h-4 mr-2" />
+                  {printing ? 'Gerando...' : 'Imprimir Nota Fiscal'}
+                </Button>
               </div>
             </div>
           )}
