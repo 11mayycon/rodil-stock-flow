@@ -5,10 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Minus, Trash2, ShoppingCart, DollarSign } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, DollarSign, Printer, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Product {
   id: string;
@@ -28,9 +31,11 @@ export default function PDV() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string>('');
+  const [generateReceipt, setGenerateReceipt] = useState(true);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (search.length >= 2) {
@@ -98,6 +103,7 @@ export default function PDV() {
     setLoading(true);
     try {
       const total = calculateTotal();
+      const now = new Date();
 
       // Criar venda
       const { data: sale, error: saleError } = await supabase
@@ -150,15 +156,23 @@ export default function PDV() {
           }] as any);
       }
 
+      // Gerar nota/recibo se solicitado
+      if (generateReceipt) {
+        await printReceipt(sale.id, total, now);
+      }
+
       toast({
         title: 'Venda finalizada!',
-        description: `Total: R$ ${total.toFixed(2)}`,
+        description: generateReceipt ? 
+          `Total: R$ ${total.toFixed(2)} - Cupom gerado!` : 
+          `Total: R$ ${total.toFixed(2)}`,
       });
 
       // Limpar carrinho
       setCart([]);
       setShowCheckout(false);
       setPaymentMethod('');
+      setGenerateReceipt(true);
     } catch (error) {
       console.error('Error finalizing sale:', error);
       toast({
@@ -171,8 +185,63 @@ export default function PDV() {
     }
   };
 
+  const printReceipt = async (saleId: string, total: number, date: Date) => {
+    try {
+      const receiptNumber = `NF-${Date.now()}`;
+      
+      const receiptData = {
+        type: 'sale',
+        saleId,
+        receiptNumber,
+        date: date.toLocaleDateString('pt-BR'),
+        time: date.toLocaleTimeString('pt-BR'),
+        user: user?.name || 'Sistema',
+        items: cart.map(item => ({
+          nome: item.nome,
+          quantidade: item.quantidade,
+          preco: item.preco,
+          total: item.preco * item.quantidade,
+        })),
+        total,
+        paymentMethod,
+      };
+
+      // Chamar edge function para gerar cupom
+      const { data, error } = await supabase.functions.invoke('print-receipt', {
+        body: receiptData,
+      });
+
+      if (error) throw error;
+
+      // Salvar log do recibo
+      await supabase.from('receipts_log').insert([{
+        sale_id: saleId,
+        user_id: user?.id,
+        receipt_number: receiptNumber,
+        receipt_data: receiptData,
+      }] as any);
+
+      console.log('Receipt text:', data.receiptText);
+    } catch (error) {
+      console.error('Error printing receipt:', error);
+      // Não falhar a venda se a impressão falhar
+    }
+  };
+
   return (
     <Layout title="PDV - Ponto de Venda" showBack>
+      {isAdmin && (
+        <div className="mb-4">
+          <Button
+            onClick={() => navigate('/finalizar-turno')}
+            variant="outline"
+            className="gap-2"
+          >
+            <Clock className="w-4 h-4" />
+            Finalizar Turno
+          </Button>
+        </div>
+      )}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Busca de Produtos */}
         <Card className="p-6">
@@ -324,9 +393,24 @@ export default function PDV() {
                   <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
                   <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
                   <SelectItem value="pix">PIX</SelectItem>
+                  <SelectItem value="cheque">Cheque</SelectItem>
                   <SelectItem value="outro">Outro</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+              <div className="flex items-center gap-2">
+                <Printer className="w-5 h-5 text-muted-foreground" />
+                <Label htmlFor="generate-receipt" className="cursor-pointer">
+                  Gerar nota/recibo não fiscal?
+                </Label>
+              </div>
+              <Switch
+                id="generate-receipt"
+                checked={generateReceipt}
+                onCheckedChange={setGenerateReceipt}
+              />
             </div>
           </div>
           <DialogFooter>

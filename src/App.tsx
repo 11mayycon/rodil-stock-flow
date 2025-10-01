@@ -18,6 +18,7 @@ import Usuarios from "./pages/Usuarios";
 import ImportarProdutos from "./pages/ImportarProdutos";
 import ConsultaProdutos from "./pages/ConsultaProdutos";
 import ProdutosRisco from "./pages/ProdutosRisco";
+import FinalizarTurno from "./pages/FinalizarTurno";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -138,6 +139,14 @@ const App = () => (
               element={
                 <ProtectedRoute adminOnly>
                   <ProdutosRisco />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/finalizar-turno"
+              element={
+                <ProtectedRoute adminOnly>
+                  <FinalizarTurno />
                 </ProtectedRoute>
               }
             />

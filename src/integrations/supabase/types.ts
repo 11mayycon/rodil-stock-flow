@@ -165,6 +165,44 @@ export type Database = {
           },
         ]
       }
+      receipts_log: {
+        Row: {
+          created_at: string | null
+          id: string
+          printed_at: string | null
+          receipt_data: Json | null
+          receipt_number: string
+          sale_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          printed_at?: string | null
+          receipt_data?: Json | null
+          receipt_number: string
+          sale_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          printed_at?: string | null
+          receipt_data?: Json | null
+          receipt_number?: string
+          sale_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_log_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sale_items: {
         Row: {
           codigo_produto: string | null
@@ -241,6 +279,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shift_closures: {
+        Row: {
+          average_ticket: number
+          created_at: string | null
+          end_time: string
+          id: string
+          payment_summary: Json | null
+          report_data: Json | null
+          start_time: string
+          total_amount: number
+          total_sales: number
+          user_id: string | null
+        }
+        Insert: {
+          average_ticket?: number
+          created_at?: string | null
+          end_time: string
+          id?: string
+          payment_summary?: Json | null
+          report_data?: Json | null
+          start_time: string
+          total_amount?: number
+          total_sales?: number
+          user_id?: string | null
+        }
+        Update: {
+          average_ticket?: number
+          created_at?: string | null
+          end_time?: string
+          id?: string
+          payment_summary?: Json | null
+          report_data?: Json | null
+          start_time?: string
+          total_amount?: number
+          total_sales?: number
+          user_id?: string | null
+        }
+        Relationships: []
       }
       stock_movements: {
         Row: {
