@@ -15,6 +15,7 @@ import Movimentacoes from "./pages/Movimentacoes";
 import Desperdicio from "./pages/Desperdicio";
 import VendaTotal from "./pages/VendaTotal";
 import Usuarios from "./pages/Usuarios";
+import ImportarProdutos from "./pages/ImportarProdutos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -111,6 +112,14 @@ const App = () => (
               element={
                 <ProtectedRoute adminOnly>
                   <Usuarios />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/importar"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ImportarProdutos />
                 </ProtectedRoute>
               }
             />

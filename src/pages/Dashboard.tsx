@@ -11,7 +11,8 @@ import {
   FileText,
   DollarSign,
   LogOut,
-  BarChart3
+  BarChart3,
+  Upload
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -39,6 +40,14 @@ export default function Dashboard() {
       icon: Package,
       path: '/produtos',
       color: 'from-accent to-accent-hover',
+      show: isAdmin,
+    },
+    {
+      title: 'Importar Produtos',
+      description: 'Importar do CSV',
+      icon: Upload,
+      path: '/importar',
+      color: 'from-orange-500 to-orange-600',
       show: isAdmin,
     },
     {
