@@ -14,7 +14,382 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          codigo_barras: string | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          preco: number
+          quantidade_estoque: number
+          unidade: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          codigo_barras?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          preco?: number
+          quantidade_estoque?: number
+          unidade?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          codigo_barras?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          preco?: number
+          quantidade_estoque?: number
+          unidade?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      receipt_items: {
+        Row: {
+          codigo_produto: string | null
+          created_at: string | null
+          id: string
+          nome_produto: string | null
+          product_id: string | null
+          quantidade: number
+          receipt_id: string | null
+          valor_unitario: number | null
+        }
+        Insert: {
+          codigo_produto?: string | null
+          created_at?: string | null
+          id?: string
+          nome_produto?: string | null
+          product_id?: string | null
+          quantidade: number
+          receipt_id?: string | null
+          valor_unitario?: number | null
+        }
+        Update: {
+          codigo_produto?: string | null
+          created_at?: string | null
+          id?: string
+          nome_produto?: string | null
+          product_id?: string | null
+          quantidade?: number
+          receipt_id?: string | null
+          valor_unitario?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receipt_items_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "receipts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receipts: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          data_recebimento: string | null
+          fornecedor: string | null
+          id: string
+          numero_nota: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          data_recebimento?: string | null
+          fornecedor?: string | null
+          id?: string
+          numero_nota?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          data_recebimento?: string | null
+          fornecedor?: string | null
+          id?: string
+          numero_nota?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sale_items: {
+        Row: {
+          codigo_produto: string | null
+          id: string
+          nome_produto: string | null
+          preco_unitario: number
+          product_id: string | null
+          quantidade: number
+          sale_id: string | null
+        }
+        Insert: {
+          codigo_produto?: string | null
+          id?: string
+          nome_produto?: string | null
+          preco_unitario: number
+          product_id?: string | null
+          quantidade: number
+          sale_id?: string | null
+        }
+        Update: {
+          codigo_produto?: string | null
+          id?: string
+          nome_produto?: string | null
+          preco_unitario?: number
+          product_id?: string | null
+          quantidade?: number
+          sale_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          created_at: string | null
+          forma_pagamento: Database["public"]["Enums"]["payment_method"] | null
+          id: string
+          total: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          forma_pagamento?: Database["public"]["Enums"]["payment_method"] | null
+          id?: string
+          total: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          forma_pagamento?: Database["public"]["Enums"]["payment_method"] | null
+          id?: string
+          total?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          created_at: string | null
+          id: string
+          motivo: string | null
+          product_id: string | null
+          quantidade: number
+          ref_id: string | null
+          tipo: Database["public"]["Enums"]["movement_type"]
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          motivo?: string | null
+          product_id?: string | null
+          quantidade: number
+          ref_id?: string | null
+          tipo: Database["public"]["Enums"]["movement_type"]
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          motivo?: string | null
+          product_id?: string | null
+          quantidade?: number
+          ref_id?: string | null
+          tipo?: Database["public"]["Enums"]["movement_type"]
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          blocked: boolean | null
+          cargo: string | null
+          cpf: string | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          password_hash: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          blocked?: boolean | null
+          cargo?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          name: string
+          password_hash: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          blocked?: boolean | null
+          cargo?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          password_hash?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      waste_records: {
+        Row: {
+          confirmed: boolean | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string | null
+          id: string
+          image_paths: string[] | null
+          motivo: string | null
+          product_id: string | null
+          quantidade: number
+          user_id: string | null
+        }
+        Insert: {
+          confirmed?: boolean | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
+          id?: string
+          image_paths?: string[] | null
+          motivo?: string | null
+          product_id?: string | null
+          quantidade: number
+          user_id?: string | null
+        }
+        Update: {
+          confirmed?: boolean | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
+          id?: string
+          image_paths?: string[] | null
+          motivo?: string | null
+          product_id?: string | null
+          quantidade?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waste_records_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waste_records_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waste_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -24,6 +399,13 @@ export type Database = {
     }
     Enums: {
       movement_type: "initial" | "add" | "remove" | "waste"
+      payment_method:
+        | "dinheiro"
+        | "cartao_debito"
+        | "cartao_credito"
+        | "pix"
+        | "outro"
+      user_role: "admin" | "employee"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -152,6 +534,14 @@ export const Constants = {
   public: {
     Enums: {
       movement_type: ["initial", "add", "remove", "waste"],
+      payment_method: [
+        "dinheiro",
+        "cartao_debito",
+        "cartao_credito",
+        "pix",
+        "outro",
+      ],
+      user_role: ["admin", "employee"],
     },
   },
 } as const
