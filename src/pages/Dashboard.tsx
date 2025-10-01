@@ -51,7 +51,7 @@ export default function Dashboard() {
       icon: Package,
       path: '/produtos',
       color: 'from-accent to-accent-hover',
-      show: isAdmin,
+      show: true,
     },
     {
       title: 'Importar Produtos',
