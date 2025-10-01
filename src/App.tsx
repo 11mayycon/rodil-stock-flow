@@ -7,6 +7,14 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import PDV from "./pages/PDV";
+import Produtos from "./pages/Produtos";
+import Recebimento from "./pages/Recebimento";
+import HistoricoVendas from "./pages/HistoricoVendas";
+import Movimentacoes from "./pages/Movimentacoes";
+import Desperdicio from "./pages/Desperdicio";
+import VendaTotal from "./pages/VendaTotal";
+import Usuarios from "./pages/Usuarios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +47,70 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pdv"
+              element={
+                <ProtectedRoute>
+                  <PDV />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/produtos"
+              element={
+                <ProtectedRoute>
+                  <Produtos />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/recebimento"
+              element={
+                <ProtectedRoute>
+                  <Recebimento />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vendas"
+              element={
+                <ProtectedRoute>
+                  <HistoricoVendas />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/movimentacoes"
+              element={
+                <ProtectedRoute>
+                  <Movimentacoes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/desperdicio"
+              element={
+                <ProtectedRoute>
+                  <Desperdicio />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/venda-total"
+              element={
+                <ProtectedRoute adminOnly>
+                  <VendaTotal />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/usuarios"
+              element={
+                <ProtectedRoute adminOnly>
+                  <Usuarios />
                 </ProtectedRoute>
               }
             />

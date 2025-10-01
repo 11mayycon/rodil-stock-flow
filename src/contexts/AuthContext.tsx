@@ -12,7 +12,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ error?: string }>;
+  login: (emailOrCpf: string, password: string, isAdmin?: boolean) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
   isAdmin: boolean;
 }
@@ -40,15 +40,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (emailOrCpf: string, password: string, isAdmin: boolean = false) => {
     try {
-      // Query users table for authentication
-      const { data: users, error } = await supabase
+      let query = supabase
         .from('users')
         .select('*')
-        .eq('email', email)
         .eq('blocked', false)
         .limit(1);
+
+      // Admin login usa email, funcionário usa CPF
+      if (isAdmin) {
+        query = query.eq('email', emailOrCpf);
+      } else {
+        query = query.eq('cpf', emailOrCpf);
+      }
+
+      const { data: users, error } = await query;
 
       if (error) throw error;
       
@@ -58,23 +65,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const userData = users[0];
 
-      // For demo purposes, accepting any password matching "1285041" for admin
-      // In production, use proper bcrypt comparison
-      if (email === 'caminhocerto93@gmail.com' && password === '1285041') {
-        const userInfo: User = {
-          id: userData.id,
-          name: userData.name,
-          email: userData.email,
-          role: userData.role,
-          cargo: userData.cargo,
-        };
-        
-        setUser(userInfo);
-        localStorage.setItem('rodoil_user', JSON.stringify(userInfo));
-        return {};
+      // Para demo: aceitar senha padrão do admin
+      // Em produção, usar bcrypt para comparar password_hash
+      const isValidPassword = 
+        (emailOrCpf === 'caminhocerto93@gmail.com' && password === '1285041') ||
+        (password === '1285041'); // Temporário para todos os usuários em demo
+
+      if (!isValidPassword) {
+        return { error: 'Credenciais inválidas' };
       }
 
-      return { error: 'Credenciais inválidas' };
+      const userInfo: User = {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        cargo: userData.cargo,
+      };
+      
+      setUser(userInfo);
+      localStorage.setItem('rodoil_user', JSON.stringify(userInfo));
+      return {};
     } catch (error) {
       console.error('Login error:', error);
       return { error: 'Erro ao fazer login' };
