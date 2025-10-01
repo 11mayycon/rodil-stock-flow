@@ -82,3 +82,12 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Barcode Scanner Styles */
+body.barcode-scanner-active {
+  background: transparent !important;
+}
+
+body.barcode-scanner-active .app-content {
+  visibility: hidden;
+}

@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Edit, Trash2, Package } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Package, Camera } from 'lucide-react';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
 interface Product {
   id: string;
@@ -140,6 +141,51 @@ export default function Produtos() {
     }
   };
 
+  const scanBarcode = async () => {
+    try {
+      // Verificar permissões
+      const { camera } = await BarcodeScanner.requestPermissions();
+      
+      if (camera !== 'granted') {
+        toast({
+          variant: 'destructive',
+          title: 'Permissão negada',
+          description: 'É necessário permitir o acesso à câmera para escanear códigos de barras',
+        });
+        return;
+      }
+
+      // Ocultar WebView para mostrar a câmera
+      document.querySelector('body')?.classList.add('barcode-scanner-active');
+
+      // Iniciar scanner e aguardar resultado
+      const result = await BarcodeScanner.scan();
+
+      // Restaurar WebView
+      document.querySelector('body')?.classList.remove('barcode-scanner-active');
+
+      if (result.barcodes && result.barcodes.length > 0) {
+        const barcode = result.barcodes[0].rawValue;
+        setFormData({ ...formData, codigo_barras: barcode });
+        toast({
+          title: 'Código escaneado!',
+          description: barcode,
+        });
+      }
+    } catch (error: any) {
+      // Restaurar WebView em caso de erro
+      document.querySelector('body')?.classList.remove('barcode-scanner-active');
+      
+      if (error.message !== 'scan canceled') {
+        toast({
+          variant: 'destructive',
+          title: 'Erro ao escanear',
+          description: error.message,
+        });
+      }
+    }
+  };
+
   return (
     <Layout title="Produtos" showBack>
       <div className="space-y-6">
@@ -214,10 +260,22 @@ export default function Produtos() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Código de Barras</Label>
-              <Input
-                value={formData.codigo_barras}
-                onChange={(e) => setFormData({ ...formData, codigo_barras: e.target.value })}
-              />
+              <div className="flex gap-2">
+                <Input
+                  value={formData.codigo_barras}
+                  onChange={(e) => setFormData({ ...formData, codigo_barras: e.target.value })}
+                  className="flex-1"
+                />
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  size="icon"
+                  onClick={scanBarcode}
+                  title="Escanear código de barras"
+                >
+                  <Camera className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Nome</Label>
