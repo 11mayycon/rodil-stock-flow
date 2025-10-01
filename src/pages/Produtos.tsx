@@ -153,12 +153,10 @@ export default function Produtos() {
               className="pl-10"
             />
           </div>
-          {isAdmin && (
-            <Button onClick={openCreateDialog} className="bg-gradient-to-r from-primary to-primary-hover">
-              <Plus className="w-4 h-4 mr-2" />
-              Cadastrar Produto
-            </Button>
-          )}
+          <Button onClick={openCreateDialog} className="bg-gradient-to-r from-primary to-primary-hover">
+            <Plus className="w-4 h-4 mr-2" />
+            Cadastrar Produto
+          </Button>
         </div>
 
         {products.length === 0 ? (
@@ -176,16 +174,14 @@ export default function Produtos() {
                       <h3 className="font-semibold text-lg">{product.nome}</h3>
                       <p className="text-sm text-muted-foreground">{product.codigo_barras}</p>
                     </div>
-                    {isAdmin && (
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
-                    )}
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}>
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex justify-between items-center">
                     <div>
