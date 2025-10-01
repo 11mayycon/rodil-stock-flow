@@ -15,7 +15,8 @@ import {
   Upload,
   Search,
   AlertTriangle,
-  Clock
+  Clock,
+  Settings
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -123,6 +124,14 @@ export default function Dashboard() {
       icon: Users,
       path: '/usuarios',
       color: 'from-indigo-500 to-indigo-600',
+      show: isAdmin,
+    },
+    {
+      title: 'Configurações',
+      description: 'Alterar senha e email',
+      icon: Settings,
+      path: '/perfil',
+      color: 'from-gray-500 to-gray-600',
       show: isAdmin,
     },
   ];

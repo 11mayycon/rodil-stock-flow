@@ -19,6 +19,7 @@ import ImportarProdutos from "./pages/ImportarProdutos";
 import ConsultaProdutos from "./pages/ConsultaProdutos";
 import ProdutosRisco from "./pages/ProdutosRisco";
 import FinalizarTurno from "./pages/FinalizarTurno";
+import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -147,6 +148,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <FinalizarTurno />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/perfil"
+              element={
+                <ProtectedRoute adminOnly>
+                  <Perfil />
                 </ProtectedRoute>
               }
             />
