@@ -199,24 +199,6 @@ export default function Usuarios() {
     if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
 
     try {
-      // Verificar se o usuário tem vendas associadas
-      const { data: sales, error: salesError } = await supabase
-        .from('sales')
-        .select('id')
-        .eq('user_id', userId)
-        .limit(1);
-
-      if (salesError) throw salesError;
-
-      if (sales && sales.length > 0) {
-        toast({
-          variant: 'destructive',
-          title: 'Não é possível excluir',
-          description: 'Este usuário possui vendas registradas no sistema.',
-        });
-        return;
-      }
-
       const { error } = await supabase
         .from('users')
         .delete()
