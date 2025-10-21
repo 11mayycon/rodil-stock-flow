@@ -376,7 +376,7 @@ export type Database = {
           email: string
           id: string
           name: string
-          password_hash: string
+          password_hash: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
         }
@@ -388,7 +388,7 @@ export type Database = {
           email: string
           id?: string
           name: string
-          password_hash: string
+          password_hash?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
@@ -400,7 +400,7 @@ export type Database = {
           email?: string
           id?: string
           name?: string
-          password_hash?: string
+          password_hash?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
@@ -472,10 +472,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_product_and_dependencies: {
+        Args: { p_product_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      movement_type: "initial" | "add" | "remove" | "waste"
+      movement_type: "entrada" | "saida" | "ajuste" | "desperdicio"
       payment_method:
         | "dinheiro"
         | "cartao_debito"
@@ -610,7 +613,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      movement_type: ["initial", "add", "remove", "waste"],
+      movement_type: ["entrada", "saida", "ajuste", "desperdicio"],
       payment_method: [
         "dinheiro",
         "cartao_debito",
