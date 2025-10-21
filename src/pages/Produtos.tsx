@@ -35,7 +35,7 @@ export default function Produtos() {
     unidade: 'un',
     descricao: '',
   });
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const { toast } = useToast();
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
@@ -85,13 +85,67 @@ export default function Produtos() {
     setShowDialog(true);
   };
 
+  const logProductAction = async (action: string, productData: any, productId?: string) => {
+    try {
+      // Log na tabela audit_logs
+      await supabase
+        .from('audit_logs')
+        .insert([{
+          user_id: user?.id,
+          action: action,
+          details: {
+            product_id: productId,
+            product_data: productData,
+            timestamp: new Date().toISOString()
+          }
+        }]);
+
+      // Se for uma alteração de estoque, registrar também em stock_movements
+      if (action === 'product_created' && productData.quantidade_estoque > 0) {
+        await supabase
+          .from('stock_movements')
+          .insert([{
+            product_id: productId,
+            user_id: user?.id,
+            tipo: 'entrada',
+            quantidade: productData.quantidade_estoque,
+            motivo: 'Estoque inicial do produto'
+          }] as any);
+      } else if (action === 'product_updated' && editingProduct) {
+        const stockDifference = productData.quantidade_estoque - editingProduct.quantidade_estoque;
+        if (stockDifference !== 0) {
+          await supabase
+            .from('stock_movements')
+            .insert([{
+              product_id: productId,
+              user_id: user?.id,
+              tipo: stockDifference > 0 ? 'entrada' : 'ajuste',
+              quantidade: stockDifference,
+              motivo: 'Ajuste manual de estoque'
+            }] as any);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao registrar log:', error);
+    }
+  };
+
   const handleSubmit = async () => {
+    if (!formData.nome || !formData.preco) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Nome e preço são obrigatórios',
+      });
+      return;
+    }
+
     try {
       const productData = {
-        codigo_barras: formData.codigo_barras,
+        codigo_barras: formData.codigo_barras || null,
         nome: formData.nome,
         preco: parseFloat(formData.preco),
-        quantidade_estoque: parseInt(formData.quantidade_estoque),
+        quantidade_estoque: parseInt(formData.quantidade_estoque) || 0,
         unidade: formData.unidade,
         descricao: formData.descricao || null,
       };
@@ -102,12 +156,22 @@ export default function Produtos() {
           .update(productData)
           .eq('id', editingProduct.id);
         if (error) throw error;
+        
+        // Registrar log da atualização
+        await logProductAction('product_updated', productData, editingProduct.id);
+        
         toast({ title: 'Produto atualizado com sucesso!' });
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('products')
-          .insert([productData as any]);
+          .insert([productData as any])
+          .select()
+          .single();
         if (error) throw error;
+        
+        // Registrar log da criação
+        await logProductAction('product_created', productData, data.id);
+        
         toast({ title: 'Produto cadastrado com sucesso!' });
       }
 
@@ -126,19 +190,32 @@ export default function Produtos() {
     if (!confirm('Tem certeza que deseja excluir este produto?')) return;
 
     try {
+      // Buscar dados do produto antes de excluir para o log
+      const { data: productData, error: fetchError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', productId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       const { error } = await supabase
         .from('products')
         .delete()
         .eq('id', productId);
-      
+
       if (error) throw error;
+
+      // Registrar log da exclusão
+      await logProductAction('product_deleted', productData, productId);
+
       toast({ title: 'Produto excluído com sucesso!' });
-      loadProducts();
+      setProducts(products.filter((p) => p.id !== productId));
     } catch (error: any) {
       toast({
-        variant: 'destructive',
-        title: 'Erro',
+        title: 'Erro ao excluir produto',
         description: error.message,
+        variant: 'destructive',
       });
     }
   };

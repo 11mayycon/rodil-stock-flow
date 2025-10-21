@@ -65,11 +65,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const userData = users[0];
 
-      // Para demo: aceitar senha padrão do admin
-      // Em produção, usar bcrypt para comparar password_hash
-      const isValidPassword = 
-        (emailOrCpf === 'caminhocerto93@gmail.com' && password === '1285041') ||
-        (password === '1285041'); // Temporário para todos os usuários em demo
+      // Importar bcrypt dinamicamente para validar a senha
+      const bcrypt = await import('bcryptjs');
+      const isValidPassword = await bcrypt.compare(password, userData.password_hash);
 
       if (!isValidPassword) {
         return { error: 'Credenciais inválidas' };

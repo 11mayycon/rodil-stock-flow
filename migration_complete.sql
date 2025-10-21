@@ -1,3 +1,6 @@
+-- Migração completa do banco de dados do Posto Rodoil
+-- Execute este script no seu banco Supabase
+
 -- Enable UUID extension if not exists
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -170,7 +173,7 @@ CREATE POLICY "Users can create sale items"
   ON sale_items FOR INSERT
   WITH CHECK (true);
 
--- Stock movements (use existing movement_type enum)
+-- Stock movements
 CREATE TABLE IF NOT EXISTS stock_movements (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   product_id UUID REFERENCES products(id),
@@ -255,12 +258,16 @@ CREATE INDEX IF NOT EXISTS idx_waste_records_confirmed ON waste_records(confirme
 
 -- Trigger to update updated_at on users
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at
@@ -274,15 +281,31 @@ CREATE TRIGGER update_products_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
--- Insert default admin user (password: 1285041, hashed with bcrypt)
--- Note: Password hash here is placeholder - will be replaced with actual hash
+-- Insert funcionário Maicon Silva
+-- Senha: 1285041 (hash bcrypt)
+INSERT INTO users (name, email, cpf, role, cargo, password_hash)
+VALUES (
+  'Maicon Silva',
+  'maiconsillva2525@gmail.com',
+  '10533219531',
+  'employee',
+  'Funcionário',
+  '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
+)
+ON CONFLICT (email) DO UPDATE SET
+  name = EXCLUDED.name,
+  cpf = EXCLUDED.cpf,
+  role = EXCLUDED.role,
+  cargo = EXCLUDED.cargo;
+
+-- Insert admin user
 INSERT INTO users (name, email, cpf, role, cargo, password_hash)
 VALUES (
   'Administrador',
-  'caminhocerto93@gmail.com',
+  'admin@posto.com',
   '00000000000',
   'admin',
   'Administrador do Sistema',
-  '$2b$10$YourActualBcryptHashHere'
+  '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
 )
 ON CONFLICT (email) DO NOTHING;

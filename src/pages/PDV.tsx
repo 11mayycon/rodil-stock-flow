@@ -10,8 +10,9 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Minus, Trash2, ShoppingCart, DollarSign, Printer, Clock } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, DollarSign, Printer, Clock, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { BarcodeScanner } from '@/components/BarcodeScanner';
 
 interface Product {
   id: string;
@@ -33,6 +34,7 @@ export default function PDV() {
   const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [generateReceipt, setGenerateReceipt] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -68,20 +70,32 @@ export default function PDV() {
         .eq('codigo_barras', code)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          toast({
+            title: "Produto não encontrado",
+            description: `Nenhum produto encontrado com o código: ${code}`,
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+        return;
+      }
       
       if (data) {
         addToCart(data);
         toast({
-          title: 'Produto adicionado!',
-          description: `${data.nome} - 1 unidade`,
+          title: "Produto adicionado",
+          description: `${data.nome} foi adicionado ao carrinho`,
         });
       }
     } catch (error) {
+      console.error('Error scanning barcode:', error);
       toast({
-        variant: 'destructive',
-        title: 'Produto não encontrado',
-        description: 'Verifique o código de barras',
+        title: "Erro no scanner",
+        description: "Erro ao buscar produto pelo código de barras",
+        variant: "destructive",
       });
     }
   };
@@ -278,15 +292,25 @@ export default function PDV() {
         {/* Busca de Produtos */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Buscar Produto</h2>
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Escaneie ou digite o código de barras (Enter para adicionar)..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-              className="pl-10"
-            />
+          <div className="flex gap-2 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Escaneie ou digite o código de barras (Enter para adicionar)..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+                className="pl-10"
+              />
+            </div>
+            <Button
+              onClick={() => setShowScanner(true)}
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+            >
+              <Camera className="w-4 h-4" />
+            </Button>
           </div>
           
           {products.length > 0 && (
@@ -460,6 +484,12 @@ export default function PDV() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BarcodeScanner
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScan={handleBarcodeScan}
+      />
     </Layout>
   );
 }

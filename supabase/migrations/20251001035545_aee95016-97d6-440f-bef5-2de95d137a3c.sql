@@ -14,6 +14,12 @@ EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
 
+DO $$ BEGIN
+  CREATE TYPE movement_type AS ENUM ('entrada', 'saida', 'ajuste', 'desperdicio');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
 -- Users table (custom auth)
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

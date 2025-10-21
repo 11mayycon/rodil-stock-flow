@@ -87,8 +87,46 @@ export default function Perfil() {
 
     setLoading(true);
     try {
-      // Aqui você precisará implementar a lógica de atualização de senha
-      // dependendo de como está armazenando as senhas (hash, etc)
+      // Importar bcrypt dinamicamente
+      const bcrypt = await import('bcryptjs');
+      
+      // 1. Buscar o usuário atual no banco para verificar a senha atual
+      const { data: userData, error: fetchError } = await supabase
+        .from('users')
+        .select('password_hash')
+        .eq('id', user?.id)
+        .single();
+
+      if (fetchError) {
+        throw new Error('Erro ao buscar dados do usuário');
+      }
+
+      // 2. Verificar se a senha atual está correta
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, userData.password_hash);
+      
+      if (!isCurrentPasswordValid) {
+        toast({
+          variant: 'destructive',
+          title: 'Erro',
+          description: 'Senha atual incorreta',
+        });
+        return;
+      }
+
+      // 3. Gerar hash da nova senha
+      const saltRounds = 10;
+      const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+
+      // 4. Atualizar a senha no banco de dados
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ password_hash: newPasswordHash })
+        .eq('id', user?.id);
+
+      if (updateError) {
+        throw new Error('Erro ao atualizar senha no banco de dados');
+      }
+
       toast({
         title: 'Senha atualizada',
         description: 'Sua senha foi atualizada com sucesso',
@@ -97,10 +135,11 @@ export default function Perfil() {
       setNewPassword('');
       setConfirmPassword('');
     } catch (error: any) {
+      console.error('Erro ao atualizar senha:', error);
       toast({
         variant: 'destructive',
         title: 'Erro ao atualizar senha',
-        description: error.message,
+        description: error.message || 'Erro ao atualizar senha',
       });
     } finally {
       setLoading(false);
