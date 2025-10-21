@@ -93,8 +93,12 @@ export default function Usuarios() {
 
   const handleSubmit = async () => {
     try {
+      console.log('🔧 Iniciando handleSubmit...');
+      console.log('📝 Dados do formulário:', formData);
+      
       // Importar bcrypt para hashear senha
       const bcrypt = await import('bcryptjs');
+      console.log('✅ bcryptjs importado com sucesso');
       
       if (editingUser) {
         // Ao editar, não atualizar a senha (apenas outros dados)
@@ -106,6 +110,7 @@ export default function Usuarios() {
           cargo: formData.cargo,
         };
         
+        console.log('📤 Atualizando usuário:', userData);
         const { error } = await supabase
           .from('users')
           .update(userData)
@@ -116,8 +121,11 @@ export default function Usuarios() {
       } else {
         // Ao criar, hashear a senha
         const password = formData.password || '123456'; // Senha padrão se não informada
+        console.log('🔐 Senha a ser hashada:', password);
+        
         const saltRounds = 10;
         const passwordHash = await bcrypt.hash(password, saltRounds);
+        console.log('✅ Senha hashada com sucesso, tamanho:', passwordHash.length);
         
         const userData = {
           name: formData.name,
@@ -129,11 +137,25 @@ export default function Usuarios() {
           blocked: false,
         };
         
-        const { error } = await supabase
-          .from('users')
-          .insert([userData as any]);
+        console.log('📤 Inserindo novo usuário (sem password_hash no log):', {
+          name: userData.name,
+          email: userData.email,
+          cpf: userData.cpf,
+          role: userData.role,
+          cargo: userData.cargo,
+        });
         
-        if (error) throw error;
+        const { data, error } = await supabase
+          .from('users')
+          .insert([userData as any])
+          .select();
+        
+        if (error) {
+          console.error('❌ Erro ao inserir usuário:', error);
+          throw error;
+        }
+        
+        console.log('✅ Usuário criado com sucesso:', data);
         toast({ 
           title: 'Usuário cadastrado com sucesso!',
           description: password === '123456' ? 'Senha padrão: 123456' : 'Use a senha informada para fazer login'
@@ -143,6 +165,7 @@ export default function Usuarios() {
       setShowDialog(false);
       loadUsers();
     } catch (error: any) {
+      console.error('💥 Erro no handleSubmit:', error);
       toast({
         variant: 'destructive',
         title: 'Erro',
