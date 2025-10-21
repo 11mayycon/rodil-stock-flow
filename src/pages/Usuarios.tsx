@@ -93,16 +93,19 @@ export default function Usuarios() {
 
   const handleSubmit = async () => {
     try {
-      const userData = {
-        name: formData.name,
-        email: formData.email,
-        cpf: formData.cpf,
-        role: formData.role,
-        cargo: formData.cargo,
-        password_hash: '$2b$10$demo', // Em produção, usar bcrypt real
-      };
-
+      // Importar bcrypt para hashear senha
+      const bcrypt = await import('bcryptjs');
+      
       if (editingUser) {
+        // Ao editar, não atualizar a senha (apenas outros dados)
+        const userData = {
+          name: formData.name,
+          email: formData.email,
+          cpf: formData.cpf,
+          role: formData.role,
+          cargo: formData.cargo,
+        };
+        
         const { error } = await supabase
           .from('users')
           .update(userData)
@@ -111,12 +114,30 @@ export default function Usuarios() {
         if (error) throw error;
         toast({ title: 'Usuário atualizado com sucesso!' });
       } else {
+        // Ao criar, hashear a senha
+        const password = formData.password || '123456'; // Senha padrão se não informada
+        const saltRounds = 10;
+        const passwordHash = await bcrypt.hash(password, saltRounds);
+        
+        const userData = {
+          name: formData.name,
+          email: formData.email,
+          cpf: formData.cpf,
+          role: formData.role,
+          cargo: formData.cargo,
+          password_hash: passwordHash,
+          blocked: false,
+        };
+        
         const { error } = await supabase
           .from('users')
           .insert([userData as any]);
         
         if (error) throw error;
-        toast({ title: 'Usuário cadastrado com sucesso!' });
+        toast({ 
+          title: 'Usuário cadastrado com sucesso!',
+          description: password === '123456' ? 'Senha padrão: 123456' : 'Use a senha informada para fazer login'
+        });
       }
 
       setShowDialog(false);

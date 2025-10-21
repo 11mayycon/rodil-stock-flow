@@ -97,11 +97,15 @@ export default function Perfil() {
         .eq('id', user?.id)
         .single();
 
-      if (fetchError) {
+      if (fetchError || !userData) {
         throw new Error('Erro ao buscar dados do usuário');
       }
 
       // 2. Verificar se a senha atual está correta
+      if (!userData.password_hash) {
+        throw new Error('Usuário sem senha cadastrada');
+      }
+      
       const isCurrentPasswordValid = await bcrypt.compare(currentPassword, userData.password_hash);
       
       if (!isCurrentPasswordValid) {
@@ -110,6 +114,7 @@ export default function Perfil() {
           title: 'Erro',
           description: 'Senha atual incorreta',
         });
+        setLoading(false);
         return;
       }
 
@@ -124,7 +129,7 @@ export default function Perfil() {
         .eq('id', user?.id);
 
       if (updateError) {
-        throw new Error('Erro ao atualizar senha no banco de dados');
+        throw updateError;
       }
 
       toast({
