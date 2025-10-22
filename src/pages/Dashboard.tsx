@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
   Package, 
-  TrendingUp, 
+  Truck, 
   ShoppingCart, 
   History, 
   Trash2, 
@@ -66,7 +66,7 @@ export default function Dashboard() {
     {
       title: 'Recebimento',
       description: 'Registrar entrada de produtos',
-      icon: TrendingUp,
+      icon: Truck,
       path: '/recebimento',
       color: 'from-success to-green-600',
       show: true,
