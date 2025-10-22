@@ -36,7 +36,7 @@ export default function FinalizarTurno() {
       // Buscar apenas as vendas do usuário logado no dia
       const { data: sales, error } = await supabase
         .from('sales')
-        .select('*, sale_items(*)')
+        .select('id,total,forma_pagamento,payment_submethod,created_at,sale_items(*)')
         .eq('user_id', user?.id)
         .gte('created_at', startOfDay.toISOString())
         .lte('created_at', endOfDay.toISOString());
