@@ -138,11 +138,13 @@ export default function PDV() {
   };
 
   const finalizeSale = async () => {
+    // Mapear forma de pagamento para os valores aceitos pelo enum do banco
     let finalPaymentMethod = paymentMethod;
     
-    // Se tem sub-método selecionado, usar ele como método final
-    if (paymentSubMethod) {
-      finalPaymentMethod = paymentSubMethod;
+    if (paymentMethod === 'debito') {
+      finalPaymentMethod = 'cartao_debito';
+    } else if (paymentMethod === 'credito') {
+      finalPaymentMethod = 'cartao_credito';
     }
     
     if (!finalPaymentMethod) {
