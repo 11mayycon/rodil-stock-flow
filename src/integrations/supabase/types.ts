@@ -253,6 +253,7 @@ export type Database = {
           created_at: string | null
           forma_pagamento: Database["public"]["Enums"]["payment_method"] | null
           id: string
+          payment_submethod: string | null
           total: number
           user_id: string | null
         }
@@ -260,6 +261,7 @@ export type Database = {
           created_at?: string | null
           forma_pagamento?: Database["public"]["Enums"]["payment_method"] | null
           id?: string
+          payment_submethod?: string | null
           total: number
           user_id?: string | null
         }
@@ -267,6 +269,7 @@ export type Database = {
           created_at?: string | null
           forma_pagamento?: Database["public"]["Enums"]["payment_method"] | null
           id?: string
+          payment_submethod?: string | null
           total?: number
           user_id?: string | null
         }

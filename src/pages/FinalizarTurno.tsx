@@ -57,7 +57,8 @@ export default function FinalizarTurno() {
       const paymentSummary: Record<string, { count: number; amount: number }> = {};
 
       sales.forEach(sale => {
-        const method = sale.forma_pagamento || 'outro';
+        // Usar payment_submethod se disponível, caso contrário usar forma_pagamento
+        const method = (sale as any).payment_submethod || sale.forma_pagamento || 'outro';
         if (!paymentSummary[method]) {
           paymentSummary[method] = { count: 0, amount: 0 };
         }
@@ -192,6 +193,15 @@ export default function FinalizarTurno() {
     'pix': 'PIX',
     'cheque': 'Cheque',
     'outro': 'Outro',
+    // Subcategorias de débito
+    'visa_debito': 'Visa Débito',
+    'elo_debito': 'Elo Débito',
+    'maestro_debito': 'Maestro Débito',
+    // Subcategorias de crédito
+    'visa_credito': 'Visa Crédito',
+    'elo_credito': 'Elo Crédito',
+    'mastercard_credito': 'Mastercard Crédito',
+    'amex_hipercard_credsystem': 'Amex / Hipercard / Credsystem',
   };
 
   return (

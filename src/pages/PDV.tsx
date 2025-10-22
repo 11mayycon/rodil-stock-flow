@@ -177,6 +177,7 @@ export default function PDV() {
           user_id: user?.id,
           total,
           forma_pagamento: finalPaymentMethod,
+          payment_submethod: paymentSubMethod || null,
         }] as any)
         .select()
         .single();
