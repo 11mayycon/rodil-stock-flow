@@ -28,18 +28,18 @@ export default function FinalizarTurno() {
   const calculateShiftSummary = async () => {
     setLoading(true);
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const startTime = today.toISOString();
-      const endTime = new Date().toISOString();
+      // Obter o início e fim do dia no timezone local
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
       // Buscar apenas as vendas do usuário logado no dia
       const { data: sales, error } = await supabase
         .from('sales')
         .select('*, sale_items(*)')
         .eq('user_id', user?.id)
-        .gte('created_at', startTime)
-        .lte('created_at', endTime);
+        .gte('created_at', startOfDay.toISOString())
+        .lte('created_at', endOfDay.toISOString());
 
       if (error) throw error;
 
@@ -70,8 +70,8 @@ export default function FinalizarTurno() {
         totalAmount,
         averageTicket: totalAmount / sales.length,
         paymentSummary,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
+        startTime: startOfDay,
+        endTime: endOfDay,
       };
 
       setSummary(shiftSummary);
