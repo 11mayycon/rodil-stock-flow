@@ -36,6 +36,7 @@ export default function PDV() {
   const [generateReceipt, setGenerateReceipt] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [amountReceived, setAmountReceived] = useState<string>('');
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -154,6 +155,30 @@ export default function PDV() {
         description: 'Selecione a forma de pagamento',
       });
       return;
+    }
+
+    // Validar valor recebido para pagamento em dinheiro
+    if (paymentMethod === 'dinheiro') {
+      const received = parseFloat(amountReceived);
+      const total = calculateTotal();
+      
+      if (!amountReceived || isNaN(received)) {
+        toast({
+          variant: 'destructive',
+          title: 'Erro',
+          description: 'Informe o valor recebido',
+        });
+        return;
+      }
+      
+      if (received < total) {
+        toast({
+          variant: 'destructive',
+          title: 'Valor insuficiente',
+          description: `Valor recebido (R$ ${received.toFixed(2)}) é menor que o total (R$ ${total.toFixed(2)})`,
+        });
+        return;
+      }
     }
 
     if (cart.length === 0) {
@@ -285,6 +310,7 @@ export default function PDV() {
       setShowCheckout(false);
       setPaymentMethod('');
       setPaymentSubMethod('');
+      setAmountReceived('');
       setGenerateReceipt(true);
     } catch (error: any) {
       console.error('Error finalizing sale:', error);
@@ -345,6 +371,16 @@ export default function PDV() {
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
     setPaymentSubMethod('');
+    setAmountReceived(''); // Resetar valor recebido
+  };
+
+  // Calcular troco
+  const calculateChange = () => {
+    if (paymentMethod !== 'dinheiro' || !amountReceived) return 0;
+    const received = parseFloat(amountReceived);
+    if (isNaN(received)) return 0;
+    const change = received - calculateTotal();
+    return change > 0 ? change : 0;
   };
 
   // Função para obter as sub-opções baseadas no método principal
@@ -572,6 +608,31 @@ export default function PDV() {
                 </Select>
               </div>
             )}
+
+            {/* Valor recebido para dinheiro */}
+            {paymentMethod === 'dinheiro' && (
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Valor Recebido</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Digite o valor recebido..."
+                    value={amountReceived}
+                    onChange={(e) => setAmountReceived(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+                {amountReceived && parseFloat(amountReceived) >= calculateTotal() && (
+                  <div className="p-4 border rounded-lg bg-success/10 border-success">
+                    <p className="text-sm text-muted-foreground mb-1">Troco</p>
+                    <p className="text-2xl font-bold text-success">
+                      R$ {calculateChange().toFixed(2)}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
             
             <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
               <div className="flex items-center gap-2">
@@ -593,7 +654,12 @@ export default function PDV() {
             </Button>
             <Button
               onClick={finalizeSale}
-              disabled={loading || !paymentMethod || ((paymentMethod === 'debito' || paymentMethod === 'credito') && !paymentSubMethod)}
+              disabled={
+                loading || 
+                !paymentMethod || 
+                ((paymentMethod === 'debito' || paymentMethod === 'credito') && !paymentSubMethod) ||
+                (paymentMethod === 'dinheiro' && (!amountReceived || parseFloat(amountReceived) < calculateTotal()))
+              }
               className="bg-gradient-to-r from-success to-green-600"
             >
               {loading ? 'Finalizando...' : 'Confirmar Venda'}
