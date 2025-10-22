@@ -20,6 +20,7 @@ import ConsultaProdutos from "./pages/ConsultaProdutos";
 import ProdutosRisco from "./pages/ProdutosRisco";
 import FinalizarTurno from "./pages/FinalizarTurno";
 import Perfil from "./pages/Perfil";
+import RelatorioEstoque from "./pages/RelatorioEstoque";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -156,6 +157,14 @@ const App = () => (
               element={
                 <ProtectedRoute adminOnly>
                   <Perfil />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/relatorio-estoque"
+              element={
+                <ProtectedRoute adminOnly>
+                  <RelatorioEstoque />
                 </ProtectedRoute>
               }
             />

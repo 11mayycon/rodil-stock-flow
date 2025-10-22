@@ -80,7 +80,7 @@ export default function Login() {
           <div className="flex justify-center mb-4">
             <img src={logoImage} alt="RodOil Logo" className="w-20 h-20" />
           </div>
-          <h1 className="text-3xl font-bold">POSTO RODOIL</h1>
+          <h1 className="text-3xl font-bold">CAMINHO CERTO</h1>
           <p className="text-muted-foreground">Sistema de Gerenciamento de Estoque</p>
         </div>
 

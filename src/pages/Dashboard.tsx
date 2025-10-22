@@ -16,7 +16,8 @@ import {
   Search,
   AlertTriangle,
   Clock,
-  Settings
+  Settings,
+  FileBarChart
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,7 +37,7 @@ export default function Dashboard() {
       icon: ShoppingCart,
       path: '/pdv',
       color: 'from-primary to-primary-hover',
-      show: !isAdmin,
+      show: true,
     },
     {
       title: 'Finalizar Turno',
@@ -55,10 +56,10 @@ export default function Dashboard() {
       show: true,
     },
     {
-      title: 'Importar Produtos',
-      description: 'Importar do CSV',
-      icon: Upload,
-      path: '/importar',
+      title: 'Gerar Relatório',
+      description: 'Relatório de estoque',
+      icon: FileBarChart,
+      path: '/relatorio-estoque',
       color: 'from-orange-500 to-orange-600',
       show: isAdmin,
     },

@@ -32,6 +32,7 @@ export default function PDV() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string>('');
+  const [paymentSubMethod, setPaymentSubMethod] = useState<string>('');
   const [generateReceipt, setGenerateReceipt] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -137,11 +138,27 @@ export default function PDV() {
   };
 
   const finalizeSale = async () => {
-    if (!paymentMethod) {
+    let finalPaymentMethod = paymentMethod;
+    
+    // Se tem sub-método selecionado, usar ele como método final
+    if (paymentSubMethod) {
+      finalPaymentMethod = paymentSubMethod;
+    }
+    
+    if (!finalPaymentMethod) {
       toast({
         variant: 'destructive',
         title: 'Erro',
         description: 'Selecione a forma de pagamento',
+      });
+      return;
+    }
+
+    if (cart.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Adicione produtos ao carrinho antes de finalizar a venda',
       });
       return;
     }
@@ -157,12 +174,15 @@ export default function PDV() {
         .insert([{
           user_id: user?.id,
           total,
-          forma_pagamento: paymentMethod,
+          forma_pagamento: finalPaymentMethod,
         }] as any)
         .select()
         .single();
 
-      if (saleError) throw saleError;
+      if (saleError) {
+        console.error('Sale error:', saleError);
+        throw new Error(`Erro ao criar venda: ${saleError.message}`);
+      }
 
       // Inserir itens da venda
       const saleItems = cart.map(item => ({
@@ -178,20 +198,43 @@ export default function PDV() {
         .from('sale_items')
         .insert(saleItems as any);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error('Items error:', itemsError);
+        throw new Error(`Erro ao inserir itens da venda: ${itemsError.message}`);
+      }
 
       // Atualizar estoque e criar movimentações
       for (const item of cart) {
+        // Buscar quantidade atual do estoque
+        const { data: currentProduct, error: fetchError } = await supabase
+          .from('products')
+          .select('quantidade_estoque')
+          .eq('id', item.id)
+          .single();
+
+        if (fetchError) {
+          console.error('Fetch product error:', fetchError);
+          throw new Error(`Erro ao buscar produto ${item.nome}: ${fetchError.message}`);
+        }
+
+        // Verificar se há estoque suficiente
+        if (currentProduct.quantidade_estoque < item.quantidade) {
+          throw new Error(`Estoque insuficiente para o produto ${item.nome}. Disponível: ${currentProduct.quantidade_estoque}, Solicitado: ${item.quantidade}`);
+        }
+
         // Atualizar estoque
         const { error: updateError } = await supabase
           .from('products')
-          .update({ quantidade_estoque: item.quantidade_estoque - item.quantidade })
+          .update({ quantidade_estoque: currentProduct.quantidade_estoque - item.quantidade })
           .eq('id', item.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Update stock error:', updateError);
+          throw new Error(`Erro ao atualizar estoque do produto ${item.nome}: ${updateError.message}`);
+        }
 
         // Criar movimentação
-        await supabase
+        const { error: movementError } = await supabase
           .from('stock_movements')
           .insert([{
             product_id: item.id,
@@ -200,38 +243,59 @@ export default function PDV() {
             quantidade: -item.quantidade,
             ref_id: sale.id,
           }] as any);
+
+        if (movementError) {
+          console.error('Movement error:', movementError);
+          // Não falhar a venda por erro na movimentação, apenas logar
+          console.warn(`Erro ao criar movimentação para ${item.nome}:`, movementError);
+        }
       }
 
       // Gerar nota/recibo se solicitado
+      let receiptError = null;
       if (generateReceipt) {
-        await printReceipt(sale.id, total, now);
+        try {
+          await printReceipt(sale.id, total, now, finalPaymentMethod);
+        } catch (error) {
+          receiptError = error;
+          console.error('Receipt error:', receiptError);
+          // Não falhar a venda por erro na impressão
+          toast({
+            title: 'Venda finalizada!',
+            description: `Total: R$ ${total.toFixed(2)} - Erro ao gerar cupom, mas venda foi registrada.`,
+            variant: 'default',
+          });
+        }
       }
 
-      toast({
-        title: 'Venda finalizada!',
-        description: generateReceipt ? 
-          `Total: R$ ${total.toFixed(2)} - Cupom gerado!` : 
-          `Total: R$ ${total.toFixed(2)}`,
-      });
+      if (!generateReceipt || !receiptError) {
+        toast({
+          title: 'Venda finalizada!',
+          description: generateReceipt ? 
+            `Total: R$ ${total.toFixed(2)} - Cupom gerado!` : 
+            `Total: R$ ${total.toFixed(2)}`,
+        });
+      }
 
       // Limpar carrinho
       setCart([]);
       setShowCheckout(false);
       setPaymentMethod('');
+      setPaymentSubMethod('');
       setGenerateReceipt(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error finalizing sale:', error);
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao finalizar venda',
+        title: 'Erro ao finalizar venda',
+        description: error.message || 'Erro desconhecido ao finalizar venda',
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const printReceipt = async (saleId: string, total: number, date: Date) => {
+  const printReceipt = async (saleId: string, total: number, date: Date, finalPaymentMethod: string) => {
     try {
       const receiptNumber = `NF-${Date.now()}`;
       
@@ -249,7 +313,7 @@ export default function PDV() {
           total: item.preco * item.quantidade,
         })),
         total,
-        paymentMethod,
+        paymentMethod: finalPaymentMethod,
       };
 
       // Chamar edge function para gerar cupom
@@ -272,6 +336,37 @@ export default function PDV() {
       console.error('Error printing receipt:', error);
       // Não falhar a venda se a impressão falhar
     }
+  };
+
+  // Função para resetar sub-método quando muda o método principal
+  const handlePaymentMethodChange = (value: string) => {
+    setPaymentMethod(value);
+    setPaymentSubMethod('');
+  };
+
+  // Função para obter as sub-opções baseadas no método principal
+  const getSubPaymentOptions = () => {
+    console.log('getSubPaymentOptions called with paymentMethod:', paymentMethod);
+    if (paymentMethod === 'debito') {
+      const options = [
+        { value: 'visa_debito', label: 'Visa Débito' },
+        { value: 'elo_debito', label: 'Elo Débito' },
+        { value: 'maestro_debito', label: 'Maestro Débito' },
+      ];
+      console.log('Returning debito options:', options);
+      return options;
+    } else if (paymentMethod === 'credito') {
+      const options = [
+        { value: 'visa_credito', label: 'Visa Crédito' },
+        { value: 'elo_credito', label: 'Elo Crédito' },
+        { value: 'mastercard_credito', label: 'Mastercard Crédito' },
+        { value: 'amex_hipercard_credsystem', label: 'Amex / Hipercard / Credsystem' },
+      ];
+      console.log('Returning credito options:', options);
+      return options;
+    }
+    console.log('Returning empty array');
+    return [];
   };
 
   return (
@@ -441,20 +536,39 @@ export default function PDV() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Forma de Pagamento</label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <Select value={paymentMethod} onValueChange={handlePaymentMethodChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="credito">Crédito</SelectItem>
                   <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                  <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                  <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                  <SelectItem value="debito">Débito</SelectItem>
                   <SelectItem value="pix">PIX</SelectItem>
-                  <SelectItem value="cheque">Cheque</SelectItem>
-                  <SelectItem value="outro">Outro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Sub-opções de pagamento */}
+            {(paymentMethod === 'debito' || paymentMethod === 'credito') && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {paymentMethod === 'debito' ? 'Tipo de Débito' : 'Tipo de Crédito'}
+                </label>
+                <Select value={paymentSubMethod} onValueChange={setPaymentSubMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getSubPaymentOptions().map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
               <div className="flex items-center gap-2">
@@ -476,7 +590,7 @@ export default function PDV() {
             </Button>
             <Button
               onClick={finalizeSale}
-              disabled={loading || !paymentMethod}
+              disabled={loading || !paymentMethod || ((paymentMethod === 'debito' || paymentMethod === 'credito') && !paymentSubMethod)}
               className="bg-gradient-to-r from-success to-green-600"
             >
               {loading ? 'Finalizando...' : 'Confirmar Venda'}

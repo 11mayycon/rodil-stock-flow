@@ -1,6 +1,6 @@
 module.exports = {
   apps: [{
-    name: 'posto-rodoil',
+    name: 'caminho-certo',
     script: 'npx',
     args: 'serve -s dist -p 3000',
     cwd: '/root/posto/posto',
@@ -12,9 +12,9 @@ module.exports = {
       NODE_ENV: 'production',
       PORT: 3000
     },
-    error_file: '/var/log/pm2/posto-rodoil-error.log',
-    out_file: '/var/log/pm2/posto-rodoil-out.log',
-    log_file: '/var/log/pm2/posto-rodoil-combined.log',
+    error_file: '/var/log/pm2/caminho-certo-error.log',
+    out_file: '/var/log/pm2/caminho-certo-out.log',
+    log_file: '/var/log/pm2/caminho-certo-combined.log',
     time: true
   }]
 };

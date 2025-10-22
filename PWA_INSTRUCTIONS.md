@@ -1,4 +1,4 @@
-# 📱 Guia de Instalação PWA - POSTO RODOIL
+# 📱 Guia de Instalação PWA - CAMINHO CERTO
 
 ## ✅ O que foi implementado
 
@@ -16,7 +16,7 @@
 
 ### Chrome/Edge
 1. Abra o aplicativo no navegador
-2. Clique no ícone ➕ na barra de endereço (ou menu → "Instalar POSTO RODOIL")
+2. Clique no ícone ➕ na barra de endereço (ou menu → "Instalar CAMINHO CERTO")
 3. Confirme a instalação
 4. O app abrirá em janela própria
 
@@ -165,4 +165,4 @@ Após fazer deploy do app:
 
 ---
 
-**🎉 Pronto! Seu sistema POSTO RODOIL agora é um PWA completo e pode ser instalado em qualquer dispositivo moderno!**
+**🎉 Pronto! Seu sistema CAMINHO CERTO agora é um PWA completo e pode ser instalado em qualquer dispositivo moderno!**

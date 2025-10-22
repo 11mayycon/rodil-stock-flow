@@ -1,4 +1,4 @@
-# 🏪 POSTO RODOIL - Sistema de Gestão
+# 🏪 CAMINHO CERTO - Sistema de Gestão
 
 Sistema completo de gestão de estoque, vendas e controle para postos de combustível e conveniências, desenvolvido com React, TypeScript e Supabase.
 
@@ -16,7 +16,7 @@ Sistema completo de gestão de estoque, vendas e controle para postos de combust
 
 ## 🎯 Sobre o Projeto
 
-O POSTO RODOIL é um sistema web completo de gestão empresarial desenvolvido especificamente para postos de combustível e lojas de conveniência. O sistema oferece controle total sobre estoque, vendas, movimentações, desperdícios e gestão de equipe, com interface intuitiva e responsiva.
+O CAMINHO CERTO é um sistema web completo de gestão empresarial desenvolvido especificamente para postos de combustível e lojas de conveniência. O sistema oferece controle total sobre estoque, vendas, movimentações, desperdícios e gestão de equipe, com interface intuitiva e responsiva.
 
 ## 🚀 Tecnologias
 

@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192x192.png', 'icon-512x512.png', 'apple-touch-icon.png', 'robots.txt', 'favicon.ico'],
       manifest: {
-        name: 'POSTO RODOIL - Sistema de Gestão',
-        short_name: 'Posto Rodoil',
+        name: 'CAMINHO CERTO - Sistema de Gestão',
+        short_name: 'Caminho Certo',
         description: 'Sistema completo de gestão para postos de combustível e lojas de conveniência',
         theme_color: '#7C3AED',
         background_color: '#ffffff',
