@@ -28,18 +28,35 @@ export default function FinalizarTurno() {
   const calculateShiftSummary = async () => {
     setLoading(true);
     try {
-      // Obter o início e fim do dia no timezone local
-      const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-      const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      // Buscar o turno ativo do usuário
+      const { data: activeShift, error: shiftError } = await supabase
+        .from('active_shifts')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('start_time', { ascending: false })
+        .limit(1)
+        .single();
 
-      // Buscar apenas as vendas do usuário logado no dia
+      if (shiftError || !activeShift) {
+        toast({
+          variant: 'destructive',
+          title: 'Erro',
+          description: 'Você precisa iniciar um turno antes de finalizá-lo.',
+        });
+        setLoading(false);
+        return;
+      }
+
+      const shiftStartTime = new Date(activeShift.start_time);
+      const now = new Date();
+
+      // Buscar vendas desde o início do turno
       const { data: sales, error } = await supabase
         .from('sales')
         .select('id,total,forma_pagamento,payment_submethod,created_at,sale_items(*)')
         .eq('user_id', user?.id)
-        .gte('created_at', startOfDay.toISOString())
-        .lte('created_at', endOfDay.toISOString());
+        .gte('created_at', shiftStartTime.toISOString())
+        .lte('created_at', now.toISOString());
 
       if (error) throw error;
 
@@ -71,8 +88,8 @@ export default function FinalizarTurno() {
         totalAmount,
         averageTicket: totalAmount / sales.length,
         paymentSummary,
-        startTime: startOfDay,
-        endTime: endOfDay,
+        startTime: shiftStartTime,
+        endTime: now,
       };
 
       setSummary(shiftSummary);
@@ -101,6 +118,8 @@ export default function FinalizarTurno() {
           user_id: user?.id,
           start_time: summary.startTime.toISOString(),
           end_time: summary.endTime.toISOString(),
+          shift_start_time: summary.startTime.toISOString(),
+          shift_end_time: summary.endTime.toISOString(),
           total_sales: summary.totalSales,
           total_amount: summary.totalAmount,
           average_ticket: summary.averageTicket,
@@ -109,6 +128,12 @@ export default function FinalizarTurno() {
         }] as any);
 
       if (error) throw error;
+
+      // Remover o turno ativo
+      await supabase
+        .from('active_shifts')
+        .delete()
+        .eq('user_id', user?.id);
 
       toast({
         title: 'Turno finalizado!',

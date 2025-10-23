@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      active_shifts: {
+        Row: {
+          created_at: string | null
+          id: string
+          start_time: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          start_time?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          start_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -291,6 +312,8 @@ export type Database = {
           id: string
           payment_summary: Json | null
           report_data: Json | null
+          shift_end_time: string | null
+          shift_start_time: string | null
           start_time: string
           total_amount: number
           total_sales: number
@@ -303,6 +326,8 @@ export type Database = {
           id?: string
           payment_summary?: Json | null
           report_data?: Json | null
+          shift_end_time?: string | null
+          shift_start_time?: string | null
           start_time: string
           total_amount?: number
           total_sales?: number
@@ -315,6 +340,8 @@ export type Database = {
           id?: string
           payment_summary?: Json | null
           report_data?: Json | null
+          shift_end_time?: string | null
+          shift_start_time?: string | null
           start_time?: string
           total_amount?: number
           total_sales?: number
@@ -379,7 +406,7 @@ export type Database = {
           email: string
           id: string
           name: string
-          password_hash: string | null
+          password_hash: string
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
         }
@@ -391,7 +418,7 @@ export type Database = {
           email: string
           id?: string
           name: string
-          password_hash?: string | null
+          password_hash: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
@@ -403,7 +430,7 @@ export type Database = {
           email?: string
           id?: string
           name?: string
-          password_hash?: string | null
+          password_hash?: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }

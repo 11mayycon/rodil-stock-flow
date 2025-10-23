@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -20,14 +21,20 @@ import {
   FileBarChart
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { StartShiftDialog } from '@/components/StartShiftDialog';
 
 export default function Dashboard() {
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [shiftStarted, setShiftStarted] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     navigate('/');
+  };
+
+  const handleShiftStarted = () => {
+    setShiftStarted(true);
   };
 
   const cards = [
@@ -120,6 +127,22 @@ export default function Dashboard() {
       show: isAdmin,
     },
     {
+      title: 'Vendas',
+      description: 'Vendas por usuário e método',
+      icon: Users,
+      path: '/vendas-admin',
+      color: 'from-teal-500 to-teal-600',
+      show: isAdmin,
+    },
+    {
+      title: 'Histórico',
+      description: 'Meus turnos finalizados',
+      icon: FileText,
+      path: '/historico-turnos',
+      color: 'from-blue-500 to-blue-600',
+      show: !isAdmin,
+    },
+    {
       title: 'Usuários',
       description: 'Gerenciar equipe',
       icon: Users,
@@ -136,6 +159,11 @@ export default function Dashboard() {
       show: isAdmin,
     },
   ];
+
+  // Se não for admin, mostrar dialog de início de turno
+  if (!isAdmin && !shiftStarted) {
+    return <StartShiftDialog onShiftStarted={handleShiftStarted} />;
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -11,6 +11,8 @@ import PDV from "./pages/PDV";
 import Produtos from "./pages/Produtos";
 import Recebimento from "./pages/Recebimento";
 import HistoricoVendas from "./pages/HistoricoVendas";
+import HistoricoTurnos from "./pages/HistoricoTurnos";
+import VendasAdmin from "./pages/VendasAdmin";
 import Movimentacoes from "./pages/Movimentacoes";
 import Desperdicio from "./pages/Desperdicio";
 import VendaTotal from "./pages/VendaTotal";
@@ -109,6 +111,22 @@ const App = () => (
               element={
                 <ProtectedRoute adminOnly>
                   <VendaTotal />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vendas-admin"
+              element={
+                <ProtectedRoute adminOnly>
+                  <VendasAdmin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/historico-turnos"
+              element={
+                <ProtectedRoute>
+                  <HistoricoTurnos />
                 </ProtectedRoute>
               }
             />
