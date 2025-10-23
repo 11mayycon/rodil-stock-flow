@@ -3,8 +3,8 @@ import { Layout } from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { Package, Search } from 'lucide-react';
-import { format } from 'date-fns';
+import { Package, Search, AlertTriangle, TrendingDown, XCircle } from 'lucide-react';
+import { format, differenceInDays } from 'date-fns';
 
 interface ProductWithSale {
   id: string;
@@ -77,6 +77,17 @@ export default function ConsultaProdutos() {
       product.codigo_barras?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Calcular estatísticas
+  const productsNotSoldIn10Days = products.filter((p) => {
+    if (!p.ultima_venda) return true; // Nunca vendido
+    const daysSinceLastSale = differenceInDays(new Date(), new Date(p.ultima_venda));
+    return daysSinceLastSale > 10;
+  }).length;
+
+  const productsLowStock = products.filter((p) => p.quantidade_estoque > 0 && p.quantidade_estoque < 10).length;
+  
+  const productsOutOfStock = products.filter((p) => p.quantidade_estoque === 0).length;
+
   if (loading) {
     return (
       <Layout title="Consulta de Produtos" showBack>
@@ -90,6 +101,51 @@ export default function ConsultaProdutos() {
   return (
     <Layout title="Consulta de Produtos" showBack>
       <div className="space-y-6">
+        {/* Cards de Estatísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-2 border-yellow-500/30 bg-yellow-500/5">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-full bg-yellow-500/10">
+                  <TrendingDown className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Sem venda +10 dias</p>
+                  <p className="text-3xl font-bold text-yellow-600">{productsNotSoldIn10Days}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-orange-500/30 bg-orange-500/5">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-full bg-orange-500/10">
+                  <AlertTriangle className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Estoque baixo (&lt;10)</p>
+                  <p className="text-3xl font-bold text-orange-600">{productsLowStock}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-destructive/30 bg-destructive/5">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-full bg-destructive/10">
+                  <XCircle className="w-6 h-6 text-destructive" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Estoque zerado</p>
+                  <p className="text-3xl font-bold text-destructive">{productsOutOfStock}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
