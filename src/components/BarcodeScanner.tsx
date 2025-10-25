@@ -16,37 +16,48 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, isOpen, 
 
   useEffect(() => {
     if (isOpen && !scannerRef.current) {
-      const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
-        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-        showTorchButtonIfSupported: true,
-        showZoomSliderIfSupported: true,
-        defaultZoomValueIfSupported: 2,
-      };
-
-      scannerRef.current = new Html5QrcodeScanner(
-        "qr-reader",
-        config,
-        false
-      );
-
-      const onScanSuccess = (decodedText: string) => {
-        console.log(`Código escaneado: ${decodedText}`);
-        onScan(decodedText);
-        handleClose();
-      };
-
-      const onScanFailure = (error: string) => {
-        // Silenciar erros de scan contínuo
-        if (!error.includes("NotFoundException")) {
-          console.warn(`Erro no scanner: ${error}`);
+      // Aguardar o DOM estar pronto antes de inicializar o scanner
+      const timer = setTimeout(() => {
+        const element = document.getElementById("qr-reader");
+        if (!element) {
+          console.error("Elemento qr-reader não encontrado");
+          return;
         }
-      };
 
-      scannerRef.current.render(onScanSuccess, onScanFailure);
-      setIsScanning(true);
+        const config = {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+          showTorchButtonIfSupported: true,
+          showZoomSliderIfSupported: true,
+          defaultZoomValueIfSupported: 2,
+        };
+
+        scannerRef.current = new Html5QrcodeScanner(
+          "qr-reader",
+          config,
+          false
+        );
+
+        const onScanSuccess = (decodedText: string) => {
+          console.log(`Código escaneado: ${decodedText}`);
+          onScan(decodedText);
+          handleClose();
+        };
+
+        const onScanFailure = (error: string) => {
+          // Silenciar erros de scan contínuo
+          if (!error.includes("NotFoundException")) {
+            console.warn(`Erro no scanner: ${error}`);
+          }
+        };
+
+        scannerRef.current.render(onScanSuccess, onScanFailure);
+        setIsScanning(true);
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
 
     return () => {
