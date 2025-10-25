@@ -67,6 +67,50 @@ export type Database = {
           },
         ]
       }
+      contagens_inventario: {
+        Row: {
+          codigo_barras: string | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          nome: string | null
+          product_id: string | null
+          quantidade_contada: number
+          quantidade_estoque: number | null
+          usuario: string | null
+        }
+        Insert: {
+          codigo_barras?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string | null
+          product_id?: string | null
+          quantidade_contada: number
+          quantidade_estoque?: number | null
+          usuario?: string | null
+        }
+        Update: {
+          codigo_barras?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string | null
+          product_id?: string | null
+          quantidade_contada?: number
+          quantidade_estoque?: number | null
+          usuario?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contagens_inventario_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           codigo_barras: string | null

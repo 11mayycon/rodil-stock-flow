@@ -23,6 +23,7 @@ import ProdutosRisco from "./pages/ProdutosRisco";
 import FinalizarTurno from "./pages/FinalizarTurno";
 import Perfil from "./pages/Perfil";
 import RelatorioEstoque from "./pages/RelatorioEstoque";
+import Inventario from "./pages/Inventario";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -183,6 +184,14 @@ const App = () => (
               element={
                 <ProtectedRoute adminOnly>
                   <RelatorioEstoque />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/inventario"
+              element={
+                <ProtectedRoute>
+                  <Inventario />
                 </ProtectedRoute>
               }
             />

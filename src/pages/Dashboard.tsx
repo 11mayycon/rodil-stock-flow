@@ -18,7 +18,8 @@ import {
   AlertTriangle,
   Clock,
   Settings,
-  FileBarChart
+  FileBarChart,
+  ClipboardCheck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { StartShiftDialog } from '@/components/StartShiftDialog';
@@ -84,6 +85,14 @@ export default function Dashboard() {
       icon: Search,
       path: '/consulta-produtos',
       color: 'from-cyan-500 to-cyan-600',
+      show: true,
+    },
+    {
+      title: 'Inventário',
+      description: 'Contagem e conferência física',
+      icon: ClipboardCheck,
+      path: '/inventario',
+      color: 'from-violet-500 to-violet-600',
       show: true,
     },
     {
