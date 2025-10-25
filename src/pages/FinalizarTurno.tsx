@@ -141,7 +141,7 @@ export default function FinalizarTurno() {
       });
 
       setShowReport(false);
-      // Mantemos o resumo para permitir a impressão
+      // Mantemos o resumo para permitir o envio do relatório
       setShowPrintDialog(true);
     } catch (error) {
       console.error('Error finalizing shift:', error);
@@ -152,6 +152,102 @@ export default function FinalizarTurno() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const sendReportToWhatsApp = async () => {
+    if (!summary) return;
+
+    try {
+      console.log('🚀 Iniciando envio para WhatsApp...');
+      
+      // Primeiro, gerar o PDF do relatório
+      const receiptNumber = `TURNO-${Date.now()}`;
+      const now = new Date();
+
+      // Preparar dados para geração do PDF
+      const paymentSummaryForPrint: Record<string, number> = {};
+      Object.entries(summary.paymentSummary).forEach(([method, data]) => {
+        paymentSummaryForPrint[method] = data.amount;
+      });
+
+      const reportData = {
+        type: 'shift_closure',
+        receiptNumber,
+        date: now.toLocaleDateString('pt-BR'),
+        time: now.toLocaleTimeString('pt-BR'),
+        user: user?.name || 'Sistema',
+        total: summary.totalAmount,
+        shiftData: {
+          totalSales: summary.totalSales,
+          averageTicket: summary.averageTicket,
+          paymentSummary: paymentSummaryForPrint,
+          entryTotal: summary.totalAmount,
+          exitTotal: summary.totalAmount,
+          difference: 0,
+        },
+      };
+
+      console.log('📄 Gerando PDF...');
+      // Gerar PDF usando a edge function
+      const { data: pdfResponse, error: pdfError } = await supabase.functions.invoke('print-receipt', {
+        body: reportData,
+      });
+
+      if (pdfError) {
+        console.error('❌ Erro ao gerar PDF:', pdfError);
+        throw pdfError;
+      }
+
+      console.log('✅ PDF gerado com sucesso');
+
+      // Preparar payload para WhatsApp com PDF
+      const whatsappPayload = {
+        user: user?.name || 'Sistema',
+        startTime: summary.startTime.toISOString(),
+        endTime: summary.endTime.toISOString(),
+        totalSales: summary.totalSales,
+        averageTicket: summary.averageTicket,
+        totalAmount: summary.totalAmount,
+        paymentSummary: summary.paymentSummary,
+        pdfData: pdfResponse, // Dados completos do PDF
+        receiptNumber: receiptNumber,
+      };
+
+      console.log('📦 Enviando para WhatsApp...');
+
+      const response = await fetch('http://localhost:4000/send-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(whatsappPayload),
+      });
+
+      console.log('📡 Resposta do servidor:', response.status, response.statusText);
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('✅ Resposta do WhatsApp:', responseData);
+        toast({
+          title: 'Relatório enviado!',
+          description: 'Relatório com PDF enviado ao WhatsApp com sucesso.',
+        });
+        
+        // Fechar dialog e limpar dados após sucesso
+        setShowPrintDialog(false);
+        setSummary(null);
+      } else {
+        const errorData = await response.text();
+        console.error('❌ Erro na resposta:', errorData);
+        throw new Error('Falha ao enviar para WhatsApp');
+      }
+
+    } catch (error) {
+      console.error('❌ Error sending to WhatsApp:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao enviar relatório para WhatsApp',
+      });
     }
   };
 
@@ -352,25 +448,25 @@ export default function FinalizarTurno() {
           </DialogContent>
         </Dialog>
 
-        {/* Dialog para Impressão */}
+        {/* Dialog para Envio do Relatório */}
         <Dialog open={showPrintDialog} onOpenChange={setShowPrintDialog}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Printer className="w-5 h-5" />
-                Imprimir Relatório
+                <FileText className="w-5 h-5" />
+                Enviar Relatório
               </DialogTitle>
             </DialogHeader>
             <p className="text-muted-foreground">
-              Deseja gerar o relatório de fechamento de turno para impressão térmica?
+              Clique no botão abaixo para enviar o relatório de fechamento de turno para o WhatsApp.
             </p>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowPrintDialog(false)}>
-                Não
+                Cancelar
               </Button>
-              <Button onClick={printReport}>
-                <Printer className="w-4 h-4 mr-2" />
-                Sim, Gerar Relatório
+              <Button onClick={sendReportToWhatsApp}>
+                <FileText className="w-4 h-4 mr-2" />
+                Enviar Relatório
               </Button>
             </DialogFooter>
           </DialogContent>

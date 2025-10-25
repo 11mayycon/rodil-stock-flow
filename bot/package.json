@@ -1,0 +1,22 @@
+{
+  "name": "caminho-certo-whatsapp-bot",
+  "version": "1.0.0",
+  "description": "Bot do WhatsApp para envio automático de relatórios de turno",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jspdf": "^3.0.3",
+    "moment": "^2.29.4",
+    "puppeteer": "^24.26.1",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.23.0"
+  },
+  "author": "INOVAPRO TECHNOLOGY",
+  "license": "MIT"
+}

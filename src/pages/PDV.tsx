@@ -305,6 +305,44 @@ export default function PDV() {
         });
       }
 
+      // Enviar venda para sincronização com Linx
+      try {
+        const saleDataForLinx = {
+          id: sale.id,
+          timestamp: now.toISOString(),
+          total,
+          forma_pagamento: finalPaymentMethod,
+          payment_submethod: paymentSubMethod,
+          user_id: user?.id,
+          user_name: user?.name,
+          items: cart.map(item => ({
+            codigo_barras: item.codigo_barras,
+            nome_produto: item.nome,
+            quantidade: item.quantidade,
+            preco_unitario: item.preco,
+            total: item.preco * item.quantidade
+          }))
+        };
+
+        const syncResponse = await fetch('http://localhost:5000/sync/queue-sale', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(saleDataForLinx),
+        });
+
+        if (syncResponse.ok) {
+          const syncResult = await syncResponse.json();
+          console.log('Venda enviada para sincronização:', syncResult.message);
+        } else {
+          console.warn('Falha ao sincronizar venda com Linx:', await syncResponse.text());
+        }
+      } catch (syncError) {
+        console.error('Erro ao sincronizar venda com Linx:', syncError);
+        // Não falhar a venda por erro de sincronização
+      }
+
       // Limpar carrinho
       setCart([]);
       setShowCheckout(false);

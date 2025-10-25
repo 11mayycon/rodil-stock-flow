@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, DollarSign, FileText, Printer } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 interface ShiftClosure {
   id: string;
@@ -74,39 +75,80 @@ export default function HistoricoTurnos() {
       const receiptNumber = `TURNO-${selectedShift.id.substring(0, 8)}`;
       const shiftDate = new Date(selectedShift.created_at);
 
-      const paymentSummaryForPrint: Record<string, number> = {};
+      // Criar novo documento PDF
+      const doc = new jsPDF();
+      
+      // Configurar fonte e título
+      doc.setFontSize(16);
+      doc.text('RELATÓRIO DE TURNO', 105, 20, { align: 'center' });
+      
+      // Linha separadora
+      doc.setLineWidth(0.5);
+      doc.line(20, 25, 190, 25);
+      
+      // Informações do turno
+      doc.setFontSize(12);
+      let yPosition = 35;
+      
+      doc.text(`Número do Turno: ${receiptNumber}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`Data: ${shiftDate.toLocaleDateString('pt-BR')}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`Hora: ${shiftDate.toLocaleTimeString('pt-BR')}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`Usuário: ${user?.name || 'Sistema'}`, 20, yPosition);
+      yPosition += 15;
+      
+      // Resumo do turno
+      doc.setFontSize(14);
+      doc.text('RESUMO DO TURNO', 20, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(12);
+      if (selectedShift.shift_start_time) {
+        doc.text(`Início do Turno: ${new Date(selectedShift.shift_start_time).toLocaleTimeString('pt-BR')}`, 20, yPosition);
+        yPosition += 8;
+      }
+      if (selectedShift.shift_end_time) {
+        doc.text(`Fim do Turno: ${new Date(selectedShift.shift_end_time).toLocaleTimeString('pt-BR')}`, 20, yPosition);
+        yPosition += 8;
+      }
+      doc.text(`Total de Vendas: ${selectedShift.total_sales}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`Ticket Médio: R$ ${selectedShift.average_ticket.toFixed(2)}`, 20, yPosition);
+      yPosition += 8;
+      doc.setFont(undefined, 'bold');
+      doc.text(`TOTAL VENDIDO: R$ ${selectedShift.total_amount.toFixed(2)}`, 20, yPosition);
+      doc.setFont(undefined, 'normal');
+      yPosition += 20;
+      
+      // Formas de pagamento
+      doc.setFontSize(14);
+      doc.text('FORMAS DE PAGAMENTO', 20, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(12);
       Object.entries(selectedShift.payment_summary || {}).forEach(([method, data]) => {
-        paymentSummaryForPrint[method] = data.amount;
+        const methodLabel = paymentMethodLabels[method] || method;
+        doc.text(`${methodLabel}: ${data.count} transações - R$ ${data.amount.toFixed(2)}`, 20, yPosition);
+        yPosition += 8;
       });
-
-      const reportData = {
-        type: 'shift_closure',
-        receiptNumber,
-        date: shiftDate.toLocaleDateString('pt-BR'),
-        time: shiftDate.toLocaleTimeString('pt-BR'),
-        user: user?.name || 'Sistema',
-        total: selectedShift.total_amount,
-        shiftData: {
-          totalSales: selectedShift.total_sales,
-          averageTicket: selectedShift.average_ticket,
-          paymentSummary: paymentSummaryForPrint,
-          startTime: selectedShift.shift_start_time,
-          endTime: selectedShift.shift_end_time,
-        },
-      };
-
-      const { data, error } = await supabase.functions.invoke('print-receipt', {
-        body: reportData,
-      });
-
-      if (error) throw error;
+      
+      // Rodapé
+      yPosition += 20;
+      doc.setLineWidth(0.5);
+      doc.line(20, yPosition, 190, yPosition);
+      yPosition += 10;
+      doc.setFontSize(10);
+      doc.text('Relatório gerado automaticamente pelo sistema', 105, yPosition, { align: 'center' });
+      
+      // Salvar o PDF
+      doc.save(`relatorio-turno-${receiptNumber}.pdf`);
 
       toast({
         title: 'Relatório gerado!',
-        description: 'PDF pronto para impressão.',
+        description: 'PDF baixado com sucesso.',
       });
-
-      console.log('Report text:', data.receiptText);
     } catch (error) {
       console.error('Error printing report:', error);
       toast({
