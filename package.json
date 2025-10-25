@@ -1,13 +1,4 @@
 {
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "build:dev": "vite build --mode development",  // ← ADICIONE ESTA LINHA
-    "lint": "eslint .",
-    "preview": "vite preview"
-  }
-}
-{
   "name": "caminho-certo",
   "private": true,
   "version": "0.0.0",
@@ -15,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:dev": "vite build --mode development",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "sync-server": "node sync-server.cjs"
@@ -35,6 +27,7 @@
     "@radix-ui/react-switch": "^1.0.3",
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-toast": "^1.1.5",
+    "@radix-ui/react-tooltip": "^1.0.7",
     "@supabase/supabase-js": "^2.39.3",
     "@tanstack/react-query": "^5.28.6",
     "axios": "^1.6.7",
@@ -44,7 +37,11 @@
     "cmdk": "^0.2.1",
     "date-fns": "^3.3.1",
     "express": "^4.18.2",
+    "html5-qrcode": "^2.3.8",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
     "lucide-react": "^0.344.0",
+    "next-themes": "^0.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.50.1",
@@ -72,6 +69,7 @@
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.2.2",
-    "vite": "^5.1.4"
+    "vite": "^5.1.4",
+    "vite-plugin-pwa": "^0.19.8"
   }
 }
